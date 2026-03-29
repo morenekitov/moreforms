@@ -12,6 +12,11 @@
 
 Твоя задача в этом чате: помогать собирать, сравнивать и обновлять конкурентную карту проекта `moreforms`.
 
+Кроме конкурентной карты, ты обязан поддерживать продуктовые артефакты проекта:
+
+- `/Users/morenekitov/Documents/moreforms/artifacts.md`
+- `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
+
 ## Контекст продукта
 
 Продукт `moreforms` решает две большие задачи:
@@ -66,6 +71,25 @@
 3. Сразу сделай git push в репозиторий `main`, если пользователь явно не попросил иное.
 
 Не оставляй изменения только локально, если задача предполагала обновление артефактов проекта.
+
+## Продуктовые артефакты
+
+Основной документ по обязательным продуктовым артефактам:
+
+`/Users/morenekitov/Documents/moreforms/artifacts.md`
+
+Структурированная таблица статуса артефактов:
+
+`/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
+
+Когда меняется продуктовая гипотеза, сегмент, MVP-скоуп, пилотный контур или логика валидации:
+
+1. обнови `artifacts.md`;
+2. обнови `data/artifacts.csv`;
+3. при необходимости обнови связанные таблицы, PRD, карту конкурентов или дешборд;
+4. закоммить и запушь изменения.
+
+Предпочитай вести продуктовую проработку через явные артефакты, а не через разрозненные заметки в чате.
 
 ## Как классифицировать конкурентов
 
@@ -302,6 +326,8 @@
 
 ## Локальные артефакты
 
+- продуктовые артефакты: `/Users/morenekitov/Documents/moreforms/artifacts.md`
+- таблица статуса артефактов: `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
 - таблица конкурентов: `/Users/morenekitov/Documents/moreforms/data/competitors.csv`
 - таблица внедрений и новостных сигналов: `/Users/morenekitov/Documents/moreforms/data/adoption_mentions.csv`
 - просмотр таблицы: `/Users/morenekitov/Documents/moreforms/app.py`

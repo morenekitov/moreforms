@@ -1,17 +1,19 @@
 from pathlib import Path
 
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 
 st.set_page_config(
-    page_title="Moreforms: карта конкурентов",
+    page_title="Moreforms: продуктовая карта",
     page_icon="📊",
     layout="wide",
 )
 
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
 ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
+ARTIFACTS_PATH = Path(__file__).parent / "data" / "artifacts.csv"
 DEFAULT_COLUMNS = {
     "company_name": "",
     "website": "",
@@ -63,6 +65,20 @@ ADOPTION_DEFAULT_COLUMNS = {
     "published_date": "",
     "summary": "",
     "why_it_matters": "",
+}
+ARTIFACTS_DEFAULT_COLUMNS = {
+    "artifact_name": "",
+    "artifact_group": "",
+    "priority": "",
+    "status": "",
+    "completion_pct": 0,
+    "evidence_score": 0,
+    "validation_status": "",
+    "target_user": "",
+    "current_focus": "",
+    "deliverable_path": "",
+    "validation_method": "",
+    "next_step": "",
 }
 LEGACY_VALUE_TRANSLATIONS = {
     "primary_client": {
@@ -144,6 +160,23 @@ def load_adoption_data() -> pd.DataFrame:
     df = pd.read_csv(ADOPTION_PATH)
     df = ensure_adoption_schema(df)
     df["published_date"] = pd.to_datetime(df["published_date"], errors="coerce")
+    return df
+
+
+def ensure_artifacts_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in ARTIFACTS_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(ARTIFACTS_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_artifacts_data() -> pd.DataFrame:
+    df = pd.read_csv(ARTIFACTS_PATH)
+    df = ensure_artifacts_schema(df)
+    df["completion_pct"] = pd.to_numeric(df["completion_pct"], errors="coerce").fillna(0)
+    df["evidence_score"] = pd.to_numeric(df["evidence_score"], errors="coerce").fillna(0)
     return df
 
 
@@ -513,14 +546,233 @@ def show_adoption_tab() -> None:
     show_adoption_cards(filtered)
 
 
-def main() -> None:
-    st.title("Moreforms: карта конкурентов")
-    st.caption(
-        "Сравнение конкурентов, смежных игроков и внедренческих сигналов "
-        "в формах, AI-аналитике, дашбордах и отчетности."
+def apply_artifact_filters(df: pd.DataFrame) -> pd.DataFrame:
+    st.subheader("Фильтры по артефактам")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        groups = multiselect_main_filter("Группа артефакта", df["artifact_group"], "artifact_group")
+    with col2:
+        priorities = multiselect_main_filter("Приоритет", df["priority"], "artifact_priority")
+    with col3:
+        statuses = multiselect_main_filter("Статус", df["status"], "artifact_status")
+
+    col4, col5 = st.columns(2)
+    with col4:
+        validation_statuses = multiselect_main_filter(
+            "Статус валидации",
+            df["validation_status"],
+            "artifact_validation_status",
+        )
+    with col5:
+        query = st.text_input(
+            "Поиск по артефакту, фокусу, следующему шагу",
+            key="artifact_query",
+        )
+
+    filtered = df.copy()
+
+    if groups:
+        filtered = filtered[filtered["artifact_group"].isin(groups)]
+
+    if priorities:
+        filtered = filtered[filtered["priority"].isin(priorities)]
+
+    if statuses:
+        filtered = filtered[filtered["status"].isin(statuses)]
+
+    if validation_statuses:
+        filtered = filtered[filtered["validation_status"].isin(validation_statuses)]
+
+    if query:
+        haystack = (
+            filtered["artifact_name"].fillna("")
+            + " "
+            + filtered["target_user"].fillna("")
+            + " "
+            + filtered["current_focus"].fillna("")
+            + " "
+            + filtered["validation_method"].fillna("")
+            + " "
+            + filtered["next_step"].fillna("")
+        ).str.lower()
+        filtered = filtered[haystack.str.contains(query.lower(), na=False)]
+
+    return filtered.sort_values(
+        by=["priority", "completion_pct", "artifact_group", "artifact_name"],
+        ascending=[True, False, True, True],
     )
 
-    tab_competitors, tab_adoption = st.tabs(["Конкуренты", "Внедрения и сигналы"])
+
+def show_artifacts_context() -> None:
+    st.subheader("Текущий продуктовый фокус")
+    st.markdown(
+        """
+**Сегмент первой итерации:** вузы, административный персонал, руководители курсов и преподаватели.  
+**Базовый сценарий:** `текст или видео -> автосоздание Яндекс.Формы -> загрузка результатов -> дашборд по промпту`.  
+**Продуктовая цель первой версии:** сократить ручную сборку форм, ускорить анализ Excel и опросных данных и дать понятные шаблоны визуализации без отдельного аналитика.
+"""
+    )
+
+
+def show_artifact_metrics(df: pd.DataFrame) -> None:
+    avg_completion = df["completion_pct"].mean()
+    avg_evidence = df["evidence_score"].mean()
+    critical_count = int((df["priority"] == "Критично").sum())
+    validated_count = int((df["validation_status"] != "Не валидировано").sum())
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Артефактов", len(df))
+    col2.metric("Средняя готовность", f"{avg_completion:.0f}%")
+    col3.metric("Средний уровень доказательств", f"{avg_evidence:.1f}/5")
+    col4.metric("С валидацией", validated_count if validated_count else critical_count)
+
+
+def show_artifact_charts(df: pd.DataFrame) -> None:
+    col1, col2 = st.columns(2)
+
+    status_counts = (
+        df.groupby("status", as_index=False)
+        .size()
+        .rename(columns={"size": "count"})
+        .sort_values("count", ascending=False)
+    )
+    fig_status = px.bar(
+        status_counts,
+        x="status",
+        y="count",
+        color="status",
+        text="count",
+        title="Статус продуктовых артефактов",
+    )
+    fig_status.update_layout(showlegend=False, margin=dict(l=20, r=20, t=60, b=20))
+
+    priority_validation = (
+        df.groupby(["priority", "validation_status"], as_index=False)
+        .size()
+        .rename(columns={"size": "count"})
+    )
+    fig_validation = px.bar(
+        priority_validation,
+        x="priority",
+        y="count",
+        color="validation_status",
+        barmode="stack",
+        text="count",
+        title="Приоритет и уровень валидации",
+    )
+    fig_validation.update_layout(margin=dict(l=20, r=20, t=60, b=20))
+
+    with col1:
+        st.plotly_chart(fig_status, use_container_width=True)
+    with col2:
+        st.plotly_chart(fig_validation, use_container_width=True)
+
+    scatter = px.scatter(
+        df,
+        x="completion_pct",
+        y="evidence_score",
+        color="priority",
+        size="completion_pct",
+        hover_name="artifact_name",
+        hover_data={
+            "artifact_group": True,
+            "status": True,
+            "validation_status": True,
+            "completion_pct": True,
+            "evidence_score": True,
+        },
+        title="Готовность артефактов и сила подтверждения",
+        labels={
+            "completion_pct": "Готовность, %",
+            "evidence_score": "Уровень доказательств, 1-5",
+        },
+    )
+    scatter.update_layout(margin=dict(l=20, r=20, t=60, b=20))
+    st.plotly_chart(scatter, use_container_width=True)
+
+
+def show_artifact_table(df: pd.DataFrame) -> None:
+    st.subheader("Таблица артефактов")
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "artifact_name": st.column_config.TextColumn("Артефакт", width="medium"),
+            "artifact_group": st.column_config.TextColumn("Группа"),
+            "priority": st.column_config.TextColumn("Приоритет"),
+            "status": st.column_config.TextColumn("Статус"),
+            "completion_pct": st.column_config.ProgressColumn("Готовность", min_value=0, max_value=100),
+            "evidence_score": st.column_config.NumberColumn("Доказательства", format="%.0f"),
+            "validation_status": st.column_config.TextColumn("Валидация"),
+            "target_user": st.column_config.TextColumn("Целевой пользователь", width="large"),
+            "current_focus": st.column_config.TextColumn("Текущий фокус", width="large"),
+            "deliverable_path": st.column_config.TextColumn("Путь к артефакту", width="medium"),
+            "validation_method": st.column_config.TextColumn("Как валидировать", width="large"),
+            "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
+        },
+    )
+
+
+def show_artifact_cards(df: pd.DataFrame) -> None:
+    st.subheader("Карточки артефактов")
+    for row in df.to_dict(orient="records"):
+        with st.expander(f'{row["artifact_name"]} • {row["status"]} • {int(row["completion_pct"])}%'):
+            st.markdown(f'**Группа:** `{row["artifact_group"]}`')
+            st.markdown(f'**Приоритет:** `{row["priority"]}`')
+            st.markdown(f'**Статус валидации:** `{row["validation_status"]}`')
+            st.markdown(f'**Целевой пользователь:** {row["target_user"]}')
+            st.markdown(f'**Текущий фокус:** {row["current_focus"]}')
+            st.markdown(f'**Готовность:** {int(row["completion_pct"])}%')
+            st.markdown(f'**Уровень доказательств:** {int(row["evidence_score"])}/5')
+            st.markdown(f'**Путь к артефакту:** [{row["deliverable_path"]}]({row["deliverable_path"]})')
+            st.markdown(f'**Как валидировать:** {row["validation_method"]}')
+            st.markdown(f'**Следующий шаг:** {row["next_step"]}')
+
+
+def show_artifacts_tab() -> None:
+    st.subheader("Продуктовые артефакты")
+    st.caption(
+        "Контур продуктовой проработки для текущей гипотезы: "
+        "генерация Яндекс.Форм из текста или видео и анализ результатов в вузах."
+    )
+
+    df = load_artifacts_data()
+    filtered = apply_artifact_filters(df)
+
+    show_artifacts_context()
+    show_artifact_metrics(filtered)
+    st.download_button(
+        "Скачать CSV по артефактам",
+        data=ARTIFACTS_PATH.read_bytes(),
+        file_name="artifacts.csv",
+        mime="text/csv",
+    )
+    st.download_button(
+        "Скачать artifacts.md",
+        data=(Path(__file__).parent / "artifacts.md").read_bytes(),
+        file_name="artifacts.md",
+        mime="text/markdown",
+    )
+    st.divider()
+    show_artifact_charts(filtered)
+    st.divider()
+    show_artifact_table(filtered)
+    st.divider()
+    show_artifact_cards(filtered)
+
+
+def main() -> None:
+    st.title("Moreforms: продуктовая карта")
+    st.caption(
+        "Конкуренты, внедренческие сигналы и продуктовые артефакты "
+        "для гипотезы форм и аналитики данных в вузах."
+    )
+
+    tab_competitors, tab_adoption, tab_artifacts = st.tabs(
+        ["Конкуренты", "Внедрения и сигналы", "Продуктовые артефакты"]
+    )
 
     with tab_competitors:
         df = load_data()
@@ -538,6 +790,9 @@ def main() -> None:
 
     with tab_adoption:
         show_adoption_tab()
+
+    with tab_artifacts:
+        show_artifacts_tab()
 
 
 if __name__ == "__main__":
