@@ -11,6 +11,7 @@ st.set_page_config(
 )
 
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
+ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
 DEFAULT_COLUMNS = {
     "company_name": "",
     "website": "",
@@ -46,6 +47,22 @@ DEFAULT_COLUMNS = {
     "product_source_url": "",
     "all_links": "",
     "notes": "",
+}
+ADOPTION_DEFAULT_COLUMNS = {
+    "startup_or_product": "",
+    "relation_type": "",
+    "sector": "",
+    "usage_pattern": "",
+    "geography_bucket": "",
+    "country": "",
+    "organization": "",
+    "organization_type": "",
+    "source_type": "",
+    "source_name": "",
+    "source_url": "",
+    "published_date": "",
+    "summary": "",
+    "why_it_matters": "",
 }
 LEGACY_VALUE_TRANSLATIONS = {
     "primary_client": {
@@ -114,6 +131,22 @@ def load_data() -> pd.DataFrame:
     return df
 
 
+def ensure_adoption_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in ADOPTION_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(ADOPTION_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_adoption_data() -> pd.DataFrame:
+    df = pd.read_csv(ADOPTION_PATH)
+    df = ensure_adoption_schema(df)
+    df["published_date"] = pd.to_datetime(df["published_date"], errors="coerce")
+    return df
+
+
 def format_seed(seed_date, seed_amount) -> str:
     parts = []
     if pd.notna(seed_date):
@@ -125,7 +158,7 @@ def format_seed(seed_date, seed_amount) -> str:
 
 def multiselect_filter(label: str, series: pd.Series) -> list[str]:
     options = sorted([value for value in series.dropna().unique().tolist() if value])
-    return st.sidebar.multiselect(label, options)
+    return st.sidebar.multiselect(label, options, placeholder="Выберите варианты")
 
 
 def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
@@ -306,22 +339,205 @@ def show_tabbed_views(df: pd.DataFrame) -> None:
             show_company_cards(subset)
 
 
-def main() -> None:
-    st.title("Moreforms: карта конкурентов")
-    st.caption("Сравнение seed-funded аналогов и смежных игроков в формах, AI-аналитике, дашбордах и отчетности.")
+def multiselect_main_filter(label: str, series: pd.Series, key: str) -> list[str]:
+    options = sorted([value for value in series.dropna().unique().tolist() if value])
+    return st.multiselect(label, options, key=key, placeholder="Выберите варианты")
 
-    df = load_data()
-    filtered = apply_filters(df)
 
-    show_metrics(filtered)
+def apply_adoption_filters(df: pd.DataFrame) -> pd.DataFrame:
+    st.subheader("Фильтры по внедрениям")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        geography = multiselect_main_filter("География", df["geography_bucket"], "adoption_geography")
+    with col2:
+        sectors = multiselect_main_filter("Контур", df["sector"], "adoption_sector")
+    with col3:
+        relation_types = multiselect_main_filter("Тип сигнала", df["relation_type"], "adoption_relation")
+
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        usage_patterns = multiselect_main_filter("Паттерн", df["usage_pattern"], "adoption_pattern")
+    with col5:
+        countries = multiselect_main_filter("Страна", df["country"], "adoption_country")
+    with col6:
+        source_types = multiselect_main_filter("Тип источника", df["source_type"], "adoption_source_type")
+
+    query = st.text_input(
+        "Поиск по продукту, организации, описанию",
+        key="adoption_query",
+    )
+
+    filtered = df.copy()
+
+    if geography:
+        filtered = filtered[filtered["geography_bucket"].isin(geography)]
+
+    if sectors:
+        filtered = filtered[filtered["sector"].isin(sectors)]
+
+    if relation_types:
+        filtered = filtered[filtered["relation_type"].isin(relation_types)]
+
+    if usage_patterns:
+        filtered = filtered[filtered["usage_pattern"].isin(usage_patterns)]
+
+    if countries:
+        filtered = filtered[filtered["country"].isin(countries)]
+
+    if source_types:
+        filtered = filtered[filtered["source_type"].isin(source_types)]
+
+    if query:
+        haystack = (
+            filtered["startup_or_product"].fillna("")
+            + " "
+            + filtered["organization"].fillna("")
+            + " "
+            + filtered["organization_type"].fillna("")
+            + " "
+            + filtered["summary"].fillna("")
+            + " "
+            + filtered["why_it_matters"].fillna("")
+        ).str.lower()
+        filtered = filtered[haystack.str.contains(query.lower(), na=False)]
+
+    return filtered.sort_values(
+        by=["geography_bucket", "sector", "published_date", "startup_or_product", "organization"],
+        ascending=[True, True, False, True, True],
+    )
+
+
+def show_adoption_metrics(df: pd.DataFrame) -> None:
+    russia_count = int((df["geography_bucket"] == "Россия").sum())
+    org_count = df["organization"].nunique()
+    product_count = df["startup_or_product"].nunique()
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Упоминаний", len(df))
+    col2.metric("Организаций", org_count)
+    col3.metric("Россия", russia_count)
+    col4.metric("Продуктов / платформ", product_count)
+
+
+def show_adoption_table(df: pd.DataFrame) -> None:
+    visible = df[
+        [
+            "startup_or_product",
+            "relation_type",
+            "sector",
+            "usage_pattern",
+            "geography_bucket",
+            "country",
+            "organization",
+            "organization_type",
+            "source_type",
+            "published_date",
+            "source_name",
+            "source_url",
+            "summary",
+            "why_it_matters",
+        ]
+    ].copy()
+    visible["published_date"] = visible["published_date"].dt.strftime("%Y-%m-%d")
+
+    st.dataframe(
+        visible,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "startup_or_product": st.column_config.TextColumn("Продукт / платформа", width="medium"),
+            "relation_type": st.column_config.TextColumn("Тип сигнала"),
+            "sector": st.column_config.TextColumn("Контур"),
+            "usage_pattern": st.column_config.TextColumn("Паттерн", width="medium"),
+            "geography_bucket": st.column_config.TextColumn("География"),
+            "country": st.column_config.TextColumn("Страна"),
+            "organization": st.column_config.TextColumn("Организация", width="medium"),
+            "organization_type": st.column_config.TextColumn("Тип организации"),
+            "source_type": st.column_config.TextColumn("Тип источника"),
+            "published_date": st.column_config.TextColumn("Дата"),
+            "source_name": st.column_config.TextColumn("Источник"),
+            "source_url": st.column_config.LinkColumn("Ссылка"),
+            "summary": st.column_config.TextColumn("Что используется", width="large"),
+            "why_it_matters": st.column_config.TextColumn("Почему важно", width="large"),
+        },
+    )
+
+
+def show_adoption_cards(df: pd.DataFrame) -> None:
+    st.subheader("Карточки внедрений")
+    for row in df.to_dict(orient="records"):
+        published_date = "нет данных"
+        if pd.notna(row["published_date"]):
+            published_date = row["published_date"].strftime("%Y-%m-%d")
+        title = (
+            f'{row["startup_or_product"]} • {row["organization"]} '
+            f'• {row["sector"]} • {row["geography_bucket"]}'
+        )
+        with st.expander(title):
+            st.markdown(f'**Организация:** {row["organization"]}')
+            st.markdown(f'**Тип организации:** {row["organization_type"]}')
+            st.markdown(f'**Продукт / платформа:** {row["startup_or_product"]}')
+            st.markdown(f'**Тип сигнала:** `{row["relation_type"]}`')
+            st.markdown(f'**Контур:** `{row["sector"]}`')
+            st.markdown(f'**География:** `{row["geography_bucket"]}`')
+            st.markdown(f'**Паттерн:** `{row["usage_pattern"]}`')
+            st.markdown(f'**Страна:** {row["country"]}')
+            st.markdown(f'**Тип источника:** {row["source_type"]}')
+            st.markdown(f'**Дата:** {published_date}')
+            st.markdown(f'**Источник:** [{row["source_name"]}]({row["source_url"]})')
+            st.markdown(f'**Что используется:** {row["summary"]}')
+            st.markdown(f'**Почему важно для moreforms:** {row["why_it_matters"]}')
+
+
+def show_adoption_tab() -> None:
+    st.subheader("Внедрения и рыночные сигналы")
+    st.caption(
+        "Точечные кейсы и официальные сигналы по использованию похожих продуктов "
+        "в вузах, образовании, ФОИВ, ведомствах и администрациях."
+    )
+
+    df = load_adoption_data()
+    filtered = apply_adoption_filters(df)
+
+    show_adoption_metrics(filtered)
     st.download_button(
-        "Скачать CSV",
-        data=DATA_PATH.read_bytes(),
-        file_name="competitors.csv",
+        "Скачать CSV по внедрениям",
+        data=ADOPTION_PATH.read_bytes(),
+        file_name="adoption_mentions.csv",
         mime="text/csv",
     )
     st.divider()
-    show_tabbed_views(filtered)
+    show_adoption_table(filtered)
+    st.divider()
+    show_adoption_cards(filtered)
+
+
+def main() -> None:
+    st.title("Moreforms: карта конкурентов")
+    st.caption(
+        "Сравнение конкурентов, смежных игроков и внедренческих сигналов "
+        "в формах, AI-аналитике, дашбордах и отчетности."
+    )
+
+    tab_competitors, tab_adoption = st.tabs(["Конкуренты", "Внедрения и сигналы"])
+
+    with tab_competitors:
+        df = load_data()
+        filtered = apply_filters(df)
+
+        show_metrics(filtered)
+        st.download_button(
+            "Скачать CSV",
+            data=DATA_PATH.read_bytes(),
+            file_name="competitors.csv",
+            mime="text/csv",
+        )
+        st.divider()
+        show_tabbed_views(filtered)
+
+    with tab_adoption:
+        show_adoption_tab()
 
 
 if __name__ == "__main__":
