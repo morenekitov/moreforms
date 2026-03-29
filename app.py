@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 
@@ -547,61 +546,17 @@ def show_adoption_tab() -> None:
 
 
 def apply_artifact_filters(df: pd.DataFrame) -> pd.DataFrame:
-    st.subheader("Фильтры по артефактам")
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        groups = multiselect_main_filter("Группа артефакта", df["artifact_group"], "artifact_group")
-    with col2:
-        priorities = multiselect_main_filter("Приоритет", df["priority"], "artifact_priority")
-    with col3:
-        statuses = multiselect_main_filter("Статус", df["status"], "artifact_status")
-
-    col4, col5 = st.columns(2)
-    with col4:
-        validation_statuses = multiselect_main_filter(
-            "Статус валидации",
-            df["validation_status"],
-            "artifact_validation_status",
-        )
-    with col5:
-        query = st.text_input(
-            "Поиск по артефакту, фокусу, следующему шагу",
-            key="artifact_query",
-        )
+    selected_artifacts = multiselect_main_filter(
+        "Артефакты",
+        df["artifact_name"],
+        "artifact_name_filter",
+    )
 
     filtered = df.copy()
+    if selected_artifacts:
+        filtered = filtered[filtered["artifact_name"].isin(selected_artifacts)]
 
-    if groups:
-        filtered = filtered[filtered["artifact_group"].isin(groups)]
-
-    if priorities:
-        filtered = filtered[filtered["priority"].isin(priorities)]
-
-    if statuses:
-        filtered = filtered[filtered["status"].isin(statuses)]
-
-    if validation_statuses:
-        filtered = filtered[filtered["validation_status"].isin(validation_statuses)]
-
-    if query:
-        haystack = (
-            filtered["artifact_name"].fillna("")
-            + " "
-            + filtered["target_user"].fillna("")
-            + " "
-            + filtered["current_focus"].fillna("")
-            + " "
-            + filtered["validation_method"].fillna("")
-            + " "
-            + filtered["next_step"].fillna("")
-        ).str.lower()
-        filtered = filtered[haystack.str.contains(query.lower(), na=False)]
-
-    return filtered.sort_values(
-        by=["priority", "completion_pct", "artifact_group", "artifact_name"],
-        ascending=[True, False, True, True],
-    )
+    return filtered.sort_values(by=["artifact_group", "artifact_name"], ascending=[True, True])
 
 
 def show_artifacts_context() -> None:
@@ -613,83 +568,6 @@ def show_artifacts_context() -> None:
 **Продуктовая цель первой версии:** сократить ручную сборку форм, ускорить анализ Excel и опросных данных и дать понятные шаблоны визуализации без отдельного аналитика.
 """
     )
-
-
-def show_artifact_metrics(df: pd.DataFrame) -> None:
-    avg_completion = df["completion_pct"].mean()
-    avg_evidence = df["evidence_score"].mean()
-    critical_count = int((df["priority"] == "Критично").sum())
-    validated_count = int((df["validation_status"] != "Не валидировано").sum())
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Артефактов", len(df))
-    col2.metric("Средняя готовность", f"{avg_completion:.0f}%")
-    col3.metric("Средний уровень доказательств", f"{avg_evidence:.1f}/5")
-    col4.metric("С валидацией", validated_count if validated_count else critical_count)
-
-
-def show_artifact_charts(df: pd.DataFrame) -> None:
-    col1, col2 = st.columns(2)
-
-    status_counts = (
-        df.groupby("status", as_index=False)
-        .size()
-        .rename(columns={"size": "count"})
-        .sort_values("count", ascending=False)
-    )
-    fig_status = px.bar(
-        status_counts,
-        x="status",
-        y="count",
-        color="status",
-        text="count",
-        title="Статус продуктовых артефактов",
-    )
-    fig_status.update_layout(showlegend=False, margin=dict(l=20, r=20, t=60, b=20))
-
-    priority_validation = (
-        df.groupby(["priority", "validation_status"], as_index=False)
-        .size()
-        .rename(columns={"size": "count"})
-    )
-    fig_validation = px.bar(
-        priority_validation,
-        x="priority",
-        y="count",
-        color="validation_status",
-        barmode="stack",
-        text="count",
-        title="Приоритет и уровень валидации",
-    )
-    fig_validation.update_layout(margin=dict(l=20, r=20, t=60, b=20))
-
-    with col1:
-        st.plotly_chart(fig_status, use_container_width=True)
-    with col2:
-        st.plotly_chart(fig_validation, use_container_width=True)
-
-    scatter = px.scatter(
-        df,
-        x="completion_pct",
-        y="evidence_score",
-        color="priority",
-        size="completion_pct",
-        hover_name="artifact_name",
-        hover_data={
-            "artifact_group": True,
-            "status": True,
-            "validation_status": True,
-            "completion_pct": True,
-            "evidence_score": True,
-        },
-        title="Готовность артефактов и сила подтверждения",
-        labels={
-            "completion_pct": "Готовность, %",
-            "evidence_score": "Уровень доказательств, 1-5",
-        },
-    )
-    scatter.update_layout(margin=dict(l=20, r=20, t=60, b=20))
-    st.plotly_chart(scatter, use_container_width=True)
 
 
 def show_artifact_table(df: pd.DataFrame) -> None:
@@ -742,7 +620,6 @@ def show_artifacts_tab() -> None:
     filtered = apply_artifact_filters(df)
 
     show_artifacts_context()
-    show_artifact_metrics(filtered)
     st.download_button(
         "Скачать CSV по артефактам",
         data=ARTIFACTS_PATH.read_bytes(),
@@ -755,8 +632,6 @@ def show_artifacts_tab() -> None:
         file_name="artifacts.md",
         mime="text/markdown",
     )
-    st.divider()
-    show_artifact_charts(filtered)
     st.divider()
     show_artifact_table(filtered)
     st.divider()
