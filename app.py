@@ -574,7 +574,7 @@ def read_artifact_content(path_value: str) -> tuple[bool, str]:
     if not path_value:
         return False, "Путь к артефакту не указан."
 
-    path = Path(path_value)
+    path = resolve_artifact_path(path_value)
     if not path.exists():
         return False, f"Файл не найден: {path_value}"
 
@@ -582,6 +582,37 @@ def read_artifact_content(path_value: str) -> tuple[bool, str]:
         return True, path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         return False, f"Не удалось прочитать файл как текст: {path_value}"
+
+
+def resolve_artifact_path(path_value: str) -> Path:
+    path = Path(path_value)
+    project_root = Path(__file__).parent
+
+    if path.exists():
+        return path
+
+    if not path.is_absolute():
+        candidate = project_root / path
+        if candidate.exists():
+            return candidate
+
+    parts = path.parts
+    if "artifacts" in parts:
+        idx = parts.index("artifacts")
+        candidate = project_root / Path(*parts[idx:])
+        if candidate.exists():
+            return candidate
+
+    if path.name == "artifacts.md":
+        candidate = project_root / "artifacts.md"
+        if candidate.exists():
+            return candidate
+
+    candidate = project_root / path.name
+    if candidate.exists():
+        return candidate
+
+    return path
 
 
 def show_artifact_table(df: pd.DataFrame) -> None:
