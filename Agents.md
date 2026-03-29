@@ -101,10 +101,13 @@
 | `country` | Страна HQ |
 | `founded_year` | Год основания |
 | `category` | Одна основная категория |
+| `startup_type` | Широкий тип стартапа для табов и обзора: например `AI-анализ данных / chat with Excel`, `Формы + анализ`, `Conversational BI / LLM dashboards` |
 | `similarity_type` | `direct` / `adjacent` / `signal` |
 | `target_market` | B2B SaaS / enterprise / education / govtech / research и т.д. |
 | `target_segments` | Конкретные ICP: universities, insights teams, data teams, enterprise ops, public sector |
 | `problem_solved` | Какую работу продукт выполняет |
+| `key_features` | Ключевые фичи в коротком виде через ` | ` |
+| `user_journey` | Типовой путь пользователя в формате `шаг 1 -> шаг 2 -> шаг 3` |
 | `notable_features` | Ключевые фичи списком через ` | ` |
 | `has_form_builder` | `yes` / `partial` / `no` |
 | `has_survey_or_interviews` | `yes` / `partial` / `no` |
@@ -130,6 +133,8 @@
 
 - Для каждой компании сохраняй минимум 2 ссылки: продукт и funding.
 - Если у компании несколько сильных сценариев, оставляй одну основную категорию и раскрывай остальное в `notable_features`.
+- Поле `startup_type` используй для верхнеуровневой группировки в дешборде.
+- В `user_journey` всегда описывай сценарий глазами пользователя, а не внутреннюю архитектуру.
 - Если сумма инвестиций указана не в USD, переводи только если источник сам дает USD; иначе пиши факт из источника в `notes`.
 - Если раунд был не `seed`, но компания важна как рыночный ориентир, включать можно только при явной пометке в `notes`.
 - Приоритет: seed-раунды за последние 4 года.

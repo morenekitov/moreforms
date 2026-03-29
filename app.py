@@ -21,6 +21,15 @@ def load_data() -> pd.DataFrame:
     return df
 
 
+def format_seed(seed_date, seed_amount) -> str:
+    parts = []
+    if pd.notna(seed_date):
+        parts.append(seed_date.strftime("%Y-%m-%d"))
+    if pd.notna(seed_amount):
+        parts.append(f"${seed_amount:.1f}M")
+    return " / ".join(parts) if parts else "n/a"
+
+
 def multiselect_filter(label: str, series: pd.Series) -> list[str]:
     options = sorted([value for value in series.dropna().unique().tolist() if value])
     return st.sidebar.multiselect(label, options)
@@ -62,9 +71,15 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
         haystack = (
             filtered["company_name"].fillna("")
             + " "
+            + filtered["startup_type"].fillna("")
+            + " "
             + filtered["target_segments"].fillna("")
             + " "
             + filtered["problem_solved"].fillna("")
+            + " "
+            + filtered["key_features"].fillna("")
+            + " "
+            + filtered["user_journey"].fillna("")
             + " "
             + filtered["notable_features"].fillna("")
             + " "
@@ -110,10 +125,13 @@ def show_table(df: pd.DataFrame) -> None:
     visible = df[
         [
             "company_name",
+            "startup_type",
             "category",
             "similarity_type",
             "country",
             "target_segments",
+            "key_features",
+            "user_journey",
             "seed_round_date",
             "seed_amount_usd_m",
             "website",
@@ -129,10 +147,13 @@ def show_table(df: pd.DataFrame) -> None:
         hide_index=True,
         column_config={
             "company_name": st.column_config.TextColumn("Компания", width="medium"),
+            "startup_type": st.column_config.TextColumn("Тип стартапа", width="large"),
             "category": st.column_config.TextColumn("Категория"),
             "similarity_type": st.column_config.TextColumn("Тип"),
             "country": st.column_config.TextColumn("Страна"),
             "target_segments": st.column_config.TextColumn("Сегменты", width="large"),
+            "key_features": st.column_config.TextColumn("Ключевые фичи", width="large"),
+            "user_journey": st.column_config.TextColumn("Путь пользователя", width="large"),
             "seed_round_date": st.column_config.TextColumn("Дата seed"),
             "seed_amount_usd_m": st.column_config.NumberColumn("Seed $M", format="%.1f"),
             "website": st.column_config.LinkColumn("Сайт"),
@@ -145,19 +166,40 @@ def show_table(df: pd.DataFrame) -> None:
 def show_company_cards(df: pd.DataFrame) -> None:
     st.subheader("Карточки")
     for row in df.to_dict(orient="records"):
-        seed_date = row["seed_round_date"]
-        seed_date_text = seed_date.strftime("%Y-%m-%d") if pd.notna(seed_date) else "n/a"
-        with st.expander(f'{row["company_name"]} • {row["category"]} • ${row["seed_amount_usd_m"]:.1f}M'):
+        seed_text = format_seed(row["seed_round_date"], row["seed_amount_usd_m"])
+        with st.expander(f'{row["company_name"]} • {row["startup_type"]} • {seed_text}'):
             st.markdown(f'**Сайт:** [link]({row["website"]})')
             st.markdown(f'**Funding source:** [link]({row["funding_source_url"]})')
             st.markdown(f'**Product source:** [link]({row["product_source_url"]})')
+            st.markdown(f'**Тип стартапа:** `{row["startup_type"]}`')
             st.markdown(f'**Тип похожести:** `{row["similarity_type"]}`')
-            st.markdown(f'**Seed:** `{seed_date_text}` / `${row["seed_amount_usd_m"]:.1f}M`')
+            st.markdown(f'**Seed:** `{seed_text}`')
             st.markdown(f'**Сегменты:** {row["target_segments"]}')
             st.markdown(f'**Проблема:** {row["problem_solved"]}')
-            st.markdown(f'**Фичи:** {row["notable_features"]}')
+            st.markdown(f'**Ключевые фичи:** {row["key_features"]}')
+            st.markdown(f'**Путь пользователя:** {row["user_journey"]}')
+            st.markdown(f'**Фичи подробно:** {row["notable_features"]}')
             st.markdown(f'**RF relevance:** {row["rf_pilot_relevance"]}')
             st.markdown(f'**Notes:** {row["notes"]}')
+
+
+def show_tabbed_views(df: pd.DataFrame) -> None:
+    startup_types = [value for value in df["startup_type"].dropna().unique().tolist() if value]
+    tab_names = ["Все"] + startup_types
+    tabs = st.tabs(tab_names)
+
+    with tabs[0]:
+        show_table(df)
+        st.divider()
+        show_company_cards(df)
+
+    for tab, startup_type in zip(tabs[1:], startup_types):
+        subset = df[df["startup_type"] == startup_type].copy()
+        with tab:
+            st.caption(f"{len(subset)} компаний")
+            show_table(subset)
+            st.divider()
+            show_company_cards(subset)
 
 
 def main() -> None:
@@ -175,11 +217,8 @@ def main() -> None:
         mime="text/csv",
     )
     st.divider()
-    show_table(filtered)
-    st.divider()
-    show_company_cards(filtered)
+    show_tabbed_views(filtered)
 
 
 if __name__ == "__main__":
     main()
-
