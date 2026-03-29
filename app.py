@@ -570,6 +570,20 @@ def show_artifacts_context() -> None:
     )
 
 
+def read_artifact_content(path_value: str) -> tuple[bool, str]:
+    if not path_value:
+        return False, "Путь к артефакту не указан."
+
+    path = Path(path_value)
+    if not path.exists():
+        return False, f"Файл не найден: {path_value}"
+
+    try:
+        return True, path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return False, f"Не удалось прочитать файл как текст: {path_value}"
+
+
 def show_artifact_table(df: pd.DataFrame) -> None:
     st.subheader("Таблица артефактов")
     st.dataframe(
@@ -604,9 +618,16 @@ def show_artifact_cards(df: pd.DataFrame) -> None:
             st.markdown(f'**Текущий фокус:** {row["current_focus"]}')
             st.markdown(f'**Готовность:** {int(row["completion_pct"])}%')
             st.markdown(f'**Уровень доказательств:** {int(row["evidence_score"])}/5')
-            st.markdown(f'**Путь к артефакту:** [{row["deliverable_path"]}]({row["deliverable_path"]})')
+            st.markdown(f'**Путь к артефакту:** `{row["deliverable_path"]}`')
             st.markdown(f'**Как валидировать:** {row["validation_method"]}')
             st.markdown(f'**Следующий шаг:** {row["next_step"]}')
+            st.divider()
+            st.markdown("**Содержимое артефакта**")
+            ok, content = read_artifact_content(row["deliverable_path"])
+            if ok:
+                st.markdown(content)
+            else:
+                st.warning(content)
 
 
 def show_artifacts_tab() -> None:
