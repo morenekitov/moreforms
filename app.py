@@ -47,6 +47,43 @@ DEFAULT_COLUMNS = {
     "all_links": "",
     "notes": "",
 }
+LEGACY_VALUE_TRANSLATIONS = {
+    "primary_client": {
+        "insights and product research teams": "команды исследований и продуктовых исследований",
+        "market research and product teams": "команды маркетинговых исследований и продуктовые команды",
+        "brand and customer insights teams": "команды бренд-аналитики и клиентской аналитики",
+        "analysts and operations teams": "аналитики и операционные команды",
+        "founders and operations teams": "фаундеры и операционные команды",
+        "knowledge workers and non-technical analysts": "офисные специалисты и нетехнические аналитики",
+        "business users waiting on data teams": "бизнес-пользователи, зависящие от команд данных",
+        "data teams and GTM leaders": "команды данных и GTM-руководители",
+        "data and finance reporting teams": "команды отчетности по данным и финансам",
+        "operations and finance teams with large datasets": "операционные и финансовые команды с большими датасетами",
+        "ops and marketing teams living in spreadsheets": "операционные и маркетинговые команды, работающие в таблицах",
+        "business users without ML teams": "бизнес-пользователи без собственной ML-команды",
+        "marketing and revenue teams": "маркетинговые и коммерческие команды",
+        "operations teams and founders": "операционные команды и фаундеры",
+        "makers, educators, and small teams": "мейкеры, преподаватели и небольшие команды",
+        "operations teams building workflow forms": "операционные команды, собирающие workflow-формы",
+        "product and UX research teams": "продуктовые команды и UX-исследователи",
+        "enterprise data consumers outside the data team": "корпоративные пользователи данных вне команд данных",
+        "data and analytics engineering teams": "команды инженерии данных и аналитической инженерии",
+        "enterprise analysts and business leaders": "корпоративные аналитики и бизнес-руководители",
+        "команды исследований и product research": "команды исследований и продуктовых исследований",
+        "команды market research и product": "команды маркетинговых исследований и продуктовые команды",
+        "команды brand insights и customer insights": "команды бренд-аналитики и клиентской аналитики",
+        "knowledge workers и нетехнические аналитики": "офисные специалисты и нетехнические аналитики",
+        "бизнес-пользователи, зависящие от data teams": "бизнес-пользователи, зависящие от команд данных",
+        "data teams и GTM-лидеры": "команды данных и GTM-руководители",
+        "команды data- и finance-отчетности": "команды отчетности по данным и финансам",
+        "operations и finance-команды с большими датасетами": "операционные и финансовые команды с большими датасетами",
+        "ops- и marketing-команды, работающие в таблицах": "операционные и маркетинговые команды, работающие в таблицах",
+        "marketing- и revenue-команды": "маркетинговые и коммерческие команды",
+        "product-команды и UX-исследователи": "продуктовые команды и UX-исследователи",
+        "корпоративные пользователи данных вне data team": "корпоративные пользователи данных вне команд данных",
+        "команды data engineering и analytics engineering": "команды инженерии данных и аналитической инженерии",
+    }
+}
 CAPABILITY_LABELS = {
     "all": "Все",
     "has_form_builder": "Есть конструктор форм",
@@ -63,6 +100,8 @@ def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
     for column, default_value in DEFAULT_COLUMNS.items():
         if column not in normalized.columns:
             normalized[column] = default_value
+    for column, mapping in LEGACY_VALUE_TRANSLATIONS.items():
+        normalized[column] = normalized[column].replace(mapping)
     return normalized[list(DEFAULT_COLUMNS.keys())]
 
 
