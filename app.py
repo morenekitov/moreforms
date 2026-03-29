@@ -5,7 +5,7 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="Moreforms Competitors",
+    page_title="Moreforms: карта конкурентов",
     page_icon="📊",
     layout="wide",
 )
@@ -47,6 +47,15 @@ DEFAULT_COLUMNS = {
     "all_links": "",
     "notes": "",
 }
+CAPABILITY_LABELS = {
+    "all": "Все",
+    "has_form_builder": "Есть конструктор форм",
+    "has_survey_or_interviews": "Есть опросы или интервью",
+    "has_ai_analysis": "Есть AI-анализ",
+    "has_prompt_dashboards": "Есть дашборды по промпту",
+    "has_excel_csv_analysis": "Есть анализ Excel или CSV",
+    "has_exports_reporting": "Есть экспорт и отчетность",
+}
 
 
 def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
@@ -72,7 +81,7 @@ def format_seed(seed_date, seed_amount) -> str:
         parts.append(seed_date.strftime("%Y-%m-%d"))
     if pd.notna(seed_amount):
         parts.append(f"${seed_amount:.1f}M")
-    return " / ".join(parts) if parts else "n/a"
+    return " / ".join(parts) if parts else "нет данных"
 
 
 def multiselect_filter(label: str, series: pd.Series) -> list[str]:
@@ -93,23 +102,16 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
     min_seed = float(df["seed_amount_usd_m"].min()) if not df["seed_amount_usd_m"].isna().all() else 0.0
     max_seed = float(df["seed_amount_usd_m"].max()) if not df["seed_amount_usd_m"].isna().all() else 10.0
     seed_range = st.sidebar.slider(
-        "Seed, $M",
+        "Раунд seed, $M",
         min_value=min_seed,
         max_value=max_seed,
         value=(min_seed, max_seed),
     )
 
     capability = st.sidebar.selectbox(
-        "Фокус capability",
-        [
-            "all",
-            "has_form_builder",
-            "has_survey_or_interviews",
-            "has_ai_analysis",
-            "has_prompt_dashboards",
-            "has_excel_csv_analysis",
-            "has_exports_reporting",
-        ],
+        "Функциональный фокус",
+        list(CAPABILITY_LABELS.keys()),
+        format_func=lambda value: CAPABILITY_LABELS[value],
     )
 
     filtered = df.copy()
@@ -173,8 +175,8 @@ def show_metrics(df: pd.DataFrame) -> None:
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Компаний", len(df))
-    col2.metric("Direct", direct_count)
-    col3.metric("Средний seed, $M", f"{avg_seed:.1f}" if pd.notna(avg_seed) else "n/a")
+    col2.metric("Прямых", direct_count)
+    col3.metric("Средний seed, $M", f"{avg_seed:.1f}" if pd.notna(avg_seed) else "нет данных")
     col4.metric("Стран", countries)
 
 
@@ -218,7 +220,7 @@ def show_table(df: pd.DataFrame) -> None:
             "seed_round_date": st.column_config.TextColumn("Дата seed"),
             "seed_amount_usd_m": st.column_config.NumberColumn("Seed $M", format="%.1f"),
             "website": st.column_config.LinkColumn("Сайт"),
-            "funding_source_url": st.column_config.LinkColumn("Funding"),
+            "funding_source_url": st.column_config.LinkColumn("Источник funding"),
             "notes": st.column_config.TextColumn("Заметка", width="large"),
         },
     )
@@ -229,12 +231,12 @@ def show_company_cards(df: pd.DataFrame) -> None:
     for row in df.to_dict(orient="records"):
         seed_text = format_seed(row["seed_round_date"], row["seed_amount_usd_m"])
         with st.expander(f'{row["company_name"]} • {row["startup_type"]} • {seed_text}'):
-            st.markdown(f'**Сайт:** [link]({row["website"]})')
-            st.markdown(f'**Funding source:** [link]({row["funding_source_url"]})')
-            st.markdown(f'**Product source:** [link]({row["product_source_url"]})')
+            st.markdown(f'**Сайт:** [ссылка]({row["website"]})')
+            st.markdown(f'**Источник funding:** [ссылка]({row["funding_source_url"]})')
+            st.markdown(f'**Источник по продукту:** [ссылка]({row["product_source_url"]})')
             st.markdown(f'**Тип стартапа:** `{row["startup_type"]}`')
             st.markdown(f'**Тип похожести:** `{row["similarity_type"]}`')
-            st.markdown(f'**Seed:** `{seed_text}`')
+            st.markdown(f'**Раунд seed:** `{seed_text}`')
             st.markdown(f'**Основной клиент:** {row["primary_client"]}')
             st.markdown(f'**Главная боль:** {row["primary_pain"]}')
             st.markdown(f'**Сегменты:** {row["target_segments"]}')
@@ -242,8 +244,8 @@ def show_company_cards(df: pd.DataFrame) -> None:
             st.markdown(f'**Ключевые фичи:** {row["key_features"]}')
             st.markdown(f'**Путь пользователя:** {row["user_journey"]}')
             st.markdown(f'**Фичи подробно:** {row["notable_features"]}')
-            st.markdown(f'**RF relevance:** {row["rf_pilot_relevance"]}')
-            st.markdown(f'**Notes:** {row["notes"]}')
+            st.markdown(f'**Релевантность для РФ:** {row["rf_pilot_relevance"]}')
+            st.markdown(f'**Заметки:** {row["notes"]}')
 
 
 def show_tabbed_views(df: pd.DataFrame) -> None:
@@ -266,8 +268,8 @@ def show_tabbed_views(df: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    st.title("Moreforms Competitor Tracker")
-    st.caption("Seed-funded analogs and adjacent players for forms, AI analytics, dashboards and reporting.")
+    st.title("Moreforms: карта конкурентов")
+    st.caption("Сравнение seed-funded аналогов и смежных игроков в формах, AI-аналитике, дашбордах и отчетности.")
 
     df = load_data()
     filtered = apply_filters(df)
