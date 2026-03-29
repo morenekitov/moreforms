@@ -1,0 +1,3 @@
+[submodule "references/ai-first-workspace-template"]
+	path = references/ai-first-workspace-template
+	url = https://github.com/VsevolodUstinov/ai-first-workspace-template

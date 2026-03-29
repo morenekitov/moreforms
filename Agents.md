@@ -17,6 +17,13 @@
 - `/Users/morenekitov/Documents/moreforms/artifacts.md`
 - `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
 
+В проект также подключен reference-репозиторий с AI-first workspace паттернами:
+
+- `/Users/morenekitov/Documents/moreforms/references/ai-first-workspace-template`
+- локальный гайд по использованию: `/Users/morenekitov/Documents/moreforms/workspace_template_guide.md`
+
+Используй его как источник паттернов организации работы, а не как кодовую зависимость приложения.
+
 ## Контекст продукта
 
 Продукт `moreforms` решает две большие задачи:
