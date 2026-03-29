@@ -11,11 +11,56 @@ st.set_page_config(
 )
 
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
+DEFAULT_COLUMNS = {
+    "company_name": "",
+    "website": "",
+    "country": "",
+    "founded_year": "",
+    "category": "",
+    "startup_type": "",
+    "similarity_type": "",
+    "target_market": "",
+    "target_segments": "",
+    "primary_client": "",
+    "primary_pain": "",
+    "problem_solved": "",
+    "key_features": "",
+    "user_journey": "",
+    "notable_features": "",
+    "has_form_builder": "no",
+    "has_survey_or_interviews": "no",
+    "has_reminders_or_followups": "no",
+    "has_response_cap_or_auto_close": "no",
+    "has_ai_analysis": "no",
+    "has_prompt_dashboards": "no",
+    "has_excel_csv_analysis": "no",
+    "has_exports_reporting": "no",
+    "has_integrations": "no",
+    "deployment_notes": "",
+    "rf_pilot_relevance": "",
+    "seed_round_date": "",
+    "seed_amount_usd_m": "",
+    "stage": "",
+    "investors": "",
+    "funding_source_url": "",
+    "product_source_url": "",
+    "all_links": "",
+    "notes": "",
+}
+
+
+def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(DEFAULT_COLUMNS.keys())]
 
 
 @st.cache_data
 def load_data() -> pd.DataFrame:
     df = pd.read_csv(DATA_PATH)
+    df = ensure_schema(df)
     df["seed_round_date"] = pd.to_datetime(df["seed_round_date"], errors="coerce")
     df["seed_amount_usd_m"] = pd.to_numeric(df["seed_amount_usd_m"], errors="coerce")
     return df
