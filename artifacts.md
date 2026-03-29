@@ -39,6 +39,17 @@
 3. при необходимости обновить связанный артефакт;
 4. сделать commit и push.
 
+## Файлы артефактов
+
+- One-pager: `/Users/morenekitov/Documents/moreforms/artifacts/one_pager.md`
+- Роли и сценарии: `/Users/morenekitov/Documents/moreforms/artifacts/roles_and_scenarios.md`
+- JTBD: `/Users/morenekitov/Documents/moreforms/artifacts/jtbd.md`
+- User journey: `/Users/morenekitov/Documents/moreforms/artifacts/user_journey.md`
+- Конкурентная карта: `/Users/morenekitov/Documents/moreforms/artifacts/competitor_map.md`
+- PRD MVP: `/Users/morenekitov/Documents/moreforms/artifacts/prd_mvp.md`
+- Метрики и гипотезы: `/Users/morenekitov/Documents/moreforms/artifacts/metrics_and_hypotheses.md`
+- Список рисков: `/Users/morenekitov/Documents/moreforms/artifacts/risk_register.md`
+
 ## Обязательные артефакты
 
 ### 1. One-pager с проблемой и ценностью
