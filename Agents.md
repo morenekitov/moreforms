@@ -105,6 +105,8 @@
 | `similarity_type` | `direct` / `adjacent` / `signal` |
 | `target_market` | B2B SaaS / enterprise / education / govtech / research и т.д. |
 | `target_segments` | Конкретные ICP: universities, insights teams, data teams, enterprise ops, public sector |
+| `primary_client` | Кто основной покупатель или основной пользователь: например `product teams`, `universities`, `operations teams`, `data teams` |
+| `primary_pain` | Какая главная боль закрывается: например `slow survey analysis`, `manual reporting`, `can't analyze Excel without analyst` |
 | `problem_solved` | Какую работу продукт выполняет |
 | `key_features` | Ключевые фичи в коротком виде через ` | ` |
 | `user_journey` | Типовой путь пользователя в формате `шаг 1 -> шаг 2 -> шаг 3` |
@@ -134,6 +136,7 @@
 - Для каждой компании сохраняй минимум 2 ссылки: продукт и funding.
 - Если у компании несколько сильных сценариев, оставляй одну основную категорию и раскрывай остальное в `notable_features`.
 - Поле `startup_type` используй для верхнеуровневой группировки в дешборде.
+- Поля `primary_client` и `primary_pain` всегда заполняй отдельно и конкретно, без общих формулировок уровня `B2B`.
 - В `user_journey` всегда описывай сценарий глазами пользователя, а не внутреннюю архитектуру.
 - Если сумма инвестиций указана не в USD, переводи только если источник сам дает USD; иначе пиши факт из источника в `notes`.
 - Если раунд был не `seed`, но компания важна как рыночный ориентир, включать можно только при явной пометке в `notes`.

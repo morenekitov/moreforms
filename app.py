@@ -42,6 +42,8 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
     categories = multiselect_filter("Категория", df["category"])
     similarity = multiselect_filter("Тип похожести", df["similarity_type"])
     countries = multiselect_filter("Страна", df["country"])
+    clients = multiselect_filter("Основной клиент", df["primary_client"])
+    pains = multiselect_filter("Главная боль", df["primary_pain"])
 
     min_seed = float(df["seed_amount_usd_m"].min()) if not df["seed_amount_usd_m"].isna().all() else 0.0
     max_seed = float(df["seed_amount_usd_m"].max()) if not df["seed_amount_usd_m"].isna().all() else 10.0
@@ -75,6 +77,10 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
             + " "
             + filtered["target_segments"].fillna("")
             + " "
+            + filtered["primary_client"].fillna("")
+            + " "
+            + filtered["primary_pain"].fillna("")
+            + " "
             + filtered["problem_solved"].fillna("")
             + " "
             + filtered["key_features"].fillna("")
@@ -95,6 +101,12 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
 
     if countries:
         filtered = filtered[filtered["country"].isin(countries)]
+
+    if clients:
+        filtered = filtered[filtered["primary_client"].isin(clients)]
+
+    if pains:
+        filtered = filtered[filtered["primary_pain"].isin(pains)]
 
     filtered = filtered[
         filtered["seed_amount_usd_m"].fillna(0).between(seed_range[0], seed_range[1])
@@ -129,6 +141,8 @@ def show_table(df: pd.DataFrame) -> None:
             "category",
             "similarity_type",
             "country",
+            "primary_client",
+            "primary_pain",
             "target_segments",
             "key_features",
             "user_journey",
@@ -151,6 +165,8 @@ def show_table(df: pd.DataFrame) -> None:
             "category": st.column_config.TextColumn("Категория"),
             "similarity_type": st.column_config.TextColumn("Тип"),
             "country": st.column_config.TextColumn("Страна"),
+            "primary_client": st.column_config.TextColumn("Основной клиент", width="medium"),
+            "primary_pain": st.column_config.TextColumn("Главная боль", width="large"),
             "target_segments": st.column_config.TextColumn("Сегменты", width="large"),
             "key_features": st.column_config.TextColumn("Ключевые фичи", width="large"),
             "user_journey": st.column_config.TextColumn("Путь пользователя", width="large"),
@@ -174,6 +190,8 @@ def show_company_cards(df: pd.DataFrame) -> None:
             st.markdown(f'**Тип стартапа:** `{row["startup_type"]}`')
             st.markdown(f'**Тип похожести:** `{row["similarity_type"]}`')
             st.markdown(f'**Seed:** `{seed_text}`')
+            st.markdown(f'**Основной клиент:** {row["primary_client"]}')
+            st.markdown(f'**Главная боль:** {row["primary_pain"]}')
             st.markdown(f'**Сегменты:** {row["target_segments"]}')
             st.markdown(f'**Проблема:** {row["problem_solved"]}')
             st.markdown(f'**Ключевые фичи:** {row["key_features"]}')
