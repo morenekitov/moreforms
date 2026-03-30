@@ -27,8 +27,15 @@
 Отдельный операционный профиль для OpenClaw-чата в Streamlit:
 
 - `/Users/morenekitov/Documents/moreforms/openclaw_agent.md`
+- `/Users/morenekitov/Documents/moreforms/openclaw_streamlit.md`
 
 Если запрос приходит через серверный чат-таб, опирайся на этот профиль как на основной runtime-контекст роли агента.
+
+Правила generated dashboards:
+
+- lightweight dashboard-страницы создаются в `/Users/morenekitov/Documents/moreforms/generated_dashboards`
+- публичная ссылка должна возвращаться в формате `https://app.moreforms.ru?dashboard=<slug>`
+- если нужен отдельный сложный runtime-дешборд, меняй `app.py` и Streamlit-контур, а не только markdown-файл
 
 ## Контекст продукта
 

@@ -16,10 +16,17 @@ DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
 ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
 ARTIFACTS_PATH = Path(__file__).parent / "data" / "artifacts.csv"
 OPENCLAW_AGENT_PROFILE_PATH = Path(__file__).parent / "openclaw_agent.md"
+OPENCLAW_STREAMLIT_GUIDE_PATH = Path(__file__).parent / "openclaw_streamlit.md"
+GENERATED_DASHBOARDS_DIR = Path(__file__).parent / "generated_dashboards"
 OPENCLAW_RESPONSES_URL = os.getenv("OPENCLAW_RESPONSES_URL", "").strip()
 OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "").strip()
 OPENCLAW_AGENT_ID = os.getenv("OPENCLAW_AGENT_ID", "main").strip() or "main"
 OPENCLAW_CHAT_USER_PREFIX = os.getenv("OPENCLAW_CHAT_USER_PREFIX", "streamlit").strip() or "streamlit"
+MAIN_DASHBOARD_PUBLIC_URL = os.getenv("MAIN_DASHBOARD_PUBLIC_URL", "https://app.moreforms.ru").rstrip("/")
+CHAT_DASHBOARD_PUBLIC_URL = os.getenv(
+    "CHAT_DASHBOARD_PUBLIC_URL",
+    f"{MAIN_DASHBOARD_PUBLIC_URL}?view=chat",
+).strip()
 DEFAULT_COLUMNS = {
     "company_name": "",
     "website": "",
@@ -271,6 +278,54 @@ def load_openclaw_agent_profile() -> str:
     if not OPENCLAW_AGENT_PROFILE_PATH.exists():
         return ""
     return OPENCLAW_AGENT_PROFILE_PATH.read_text(encoding="utf-8").strip()
+
+
+@st.cache_data
+def load_openclaw_streamlit_guide() -> str:
+    if not OPENCLAW_STREAMLIT_GUIDE_PATH.exists():
+        return ""
+    return OPENCLAW_STREAMLIT_GUIDE_PATH.read_text(encoding="utf-8").strip()
+
+
+def dashboard_link(slug: str) -> str:
+    return f"{MAIN_DASHBOARD_PUBLIC_URL}?dashboard={slug}"
+
+
+def parse_dashboard_title(markdown_text: str, fallback: str) -> str:
+    for line in markdown_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# "):
+            return stripped.removeprefix("# ").strip()
+    return fallback.replace("_", " ").strip().title()
+
+
+def list_generated_dashboards() -> list[dict[str, str]]:
+    if not GENERATED_DASHBOARDS_DIR.exists():
+        return []
+
+    dashboards = []
+    for path in sorted(GENERATED_DASHBOARDS_DIR.glob("*.md")):
+        if path.name.lower() == "readme.md":
+            continue
+        content = path.read_text(encoding="utf-8")
+        slug = path.stem
+        dashboards.append(
+            {
+                "slug": slug,
+                "title": parse_dashboard_title(content, slug),
+                "content": content,
+                "path": str(path),
+                "link": dashboard_link(slug),
+            }
+        )
+    return dashboards
+
+
+def find_generated_dashboard(slug: str) -> dict[str, str] | None:
+    for dashboard in list_generated_dashboards():
+        if dashboard["slug"] == slug:
+            return dashboard
+    return None
 
 
 def format_seed(seed_date, seed_amount) -> str:
@@ -875,10 +930,19 @@ def build_mode_prompt(user_prompt: str, mode_key: str) -> str:
         return user_prompt
 
     files = "\n".join(f"- {path}" for path in mode_config["files"])
+    dashboard_rules = (
+        "Если пользователь просит создать новый дашборд или доработать существующий Streamlit-дашборд, "
+        "используй такие правила:\n"
+        f"- для lightweight dashboard создай или обнови markdown-файл в `{GENERATED_DASHBOARDS_DIR.name}/<slug>.md`\n"
+        f"- после создания или обновления верни ссылку формата `{MAIN_DASHBOARD_PUBLIC_URL}?dashboard=<slug>`\n"
+        "- если нужно менять основной Streamlit-интерфейс или чат-дашборд, редактируй `app.py` и связанные deploy-файлы\n"
+        "- не обещай ссылку, пока не определил slug дашборда явно\n"
+    )
     return (
         f"{mode_config['context']}\n\n"
         "При ответе опирайся в первую очередь на эти файлы проекта:\n"
         f"{files}\n\n"
+        f"{dashboard_rules}\n"
         "Новый запрос:\n"
         f"{user_prompt}"
     )
@@ -918,12 +982,65 @@ def render_quick_chat_actions(mode_key: str) -> str | None:
     return None
 
 
+def render_top_navigation(view: str) -> None:
+    main_link = MAIN_DASHBOARD_PUBLIC_URL
+    chat_link = CHAT_DASHBOARD_PUBLIC_URL
+    if view == "chat":
+        st.markdown(f"[Открыть основной дашборд]({main_link})")
+    else:
+        st.markdown(f"[Открыть чат-дашборд]({chat_link})")
+
+
+def show_generated_dashboards_tab() -> None:
+    st.subheader("Созданные дашборды")
+    st.caption(
+        "Здесь отображаются lightweight dashboard-файлы, созданные или обновленные через чатбота OpenClaw."
+    )
+
+    dashboards = list_generated_dashboards()
+    if not dashboards:
+        st.info(
+            "Пока нет созданных дашбордов. Попроси чатбота создать dashboard и вернуть ссылку."
+        )
+        return
+
+    for dashboard in dashboards:
+        with st.container(border=True):
+            st.markdown(f"### {dashboard['title']}")
+            st.markdown(f"**Slug:** `{dashboard['slug']}`")
+            st.markdown(f"**Ссылка:** [{dashboard['link']}]({dashboard['link']})")
+            st.markdown(f"**Файл:** `{dashboard['path']}`")
+            preview = dashboard["content"][:600].strip()
+            if preview:
+                st.markdown(preview)
+
+
+def show_generated_dashboard_page(slug: str) -> None:
+    dashboard = find_generated_dashboard(slug)
+    if dashboard is None:
+        st.title("Дашборд не найден")
+        st.error(f"Не удалось найти generated dashboard со slug `{slug}`.")
+        render_top_navigation("generated")
+        return
+
+    st.title(dashboard["title"])
+    st.caption(f"Generated dashboard: `{dashboard['slug']}`")
+    render_top_navigation("generated")
+    st.markdown(
+        f"[Назад к основному дашборду]({MAIN_DASHBOARD_PUBLIC_URL}) | "
+        f"[Открыть чат-дашборд]({CHAT_DASHBOARD_PUBLIC_URL})"
+    )
+    st.divider()
+    st.markdown(dashboard["content"])
+
+
 def show_chat_tab() -> None:
     st.subheader("Чат-бот")
     st.caption(
         "Интерфейс для работы с OpenClaw через Streamlit. "
         "Контракт рассчитан на OpenResponses API `POST /v1/responses`."
     )
+    render_top_navigation("chat")
     mode_key = st.selectbox(
         "Режим работы",
         list(CHAT_MODE_CONFIG.keys()),
@@ -955,6 +1072,13 @@ def show_chat_tab() -> None:
             st.markdown(agent_profile)
         else:
             st.warning("Файл `openclaw_agent.md` не найден.")
+
+    with st.expander("Инструкции OpenClaw x Streamlit", expanded=False):
+        streamlit_guide = load_openclaw_streamlit_guide()
+        if streamlit_guide:
+            st.markdown(streamlit_guide)
+        else:
+            st.warning("Файл `openclaw_streamlit.md` не найден.")
 
     with st.expander("Фокус режима", expanded=False):
         st.markdown(f"**Что делает режим:** {mode_config['description']}")
@@ -1008,14 +1132,31 @@ def show_chat_tab() -> None:
 
 
 def main() -> None:
-    st.title("Moreforms: продуктовая карта")
+    query_params = st.query_params
+    dashboard_slug = str(query_params.get("dashboard", "")).strip()
+    view = str(query_params.get("view", "")).strip().lower()
+
+    if dashboard_slug:
+        show_generated_dashboard_page(dashboard_slug)
+        return
+
+    if view == "chat":
+        st.title("Moreforms: чат")
+        st.caption(
+            "Отдельный чат-дашборд для работы с OpenClaw как продуктовым менеджером и разработчиком."
+        )
+        show_chat_tab()
+        return
+
+    st.title("Moreforms: основной дашборд")
     st.caption(
-        "Конкуренты, внедренческие сигналы и продуктовые артефакты "
+        "Конкуренты, внедренческие сигналы, продуктовые артефакты и созданные дашборды "
         "для гипотезы форм и аналитики данных в вузах."
     )
+    render_top_navigation("main")
 
-    tab_competitors, tab_adoption, tab_artifacts, tab_chat = st.tabs(
-        ["Конкуренты", "Внедрения и сигналы", "Продуктовые артефакты", "Чат-бот"]
+    tab_competitors, tab_adoption, tab_artifacts, tab_generated = st.tabs(
+        ["Конкуренты", "Внедрения и сигналы", "Продуктовые артефакты", "Созданные дашборды"]
     )
 
     with tab_competitors:
@@ -1038,8 +1179,8 @@ def main() -> None:
     with tab_artifacts:
         show_artifacts_tab()
 
-    with tab_chat:
-        show_chat_tab()
+    with tab_generated:
+        show_generated_dashboards_tab()
 
 
 if __name__ == "__main__":

@@ -13,6 +13,12 @@
 
 `Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> OpenClaw HTTP adapter -> OpenClaw agent`
 
+## Пользовательские URL
+
+- основной дашборд: `https://app.moreforms.ru`
+- чат-дашборд: `https://app.moreforms.ru?view=chat`
+- generated dashboard: `https://app.moreforms.ru?dashboard=<slug>`
+
 Ключевые принципы:
 
 - публично открыт только `Caddy`
@@ -31,6 +37,8 @@ cp deploy/.env.example /srv/moreforms/runtime/.env
 2. Заполнить в `/srv/moreforms/runtime/.env`:
 
 - `APP_DOMAIN`
+- `MAIN_DASHBOARD_PUBLIC_URL`
+- `CHAT_DASHBOARD_PUBLIC_URL`
 - `OAUTH2_PROXY_CLIENT_ID`
 - `OAUTH2_PROXY_CLIENT_SECRET`
 - `OAUTH2_PROXY_COOKIE_SECRET`
