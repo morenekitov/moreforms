@@ -15,6 +15,7 @@ st.set_page_config(
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
 ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
 ARTIFACTS_PATH = Path(__file__).parent / "data" / "artifacts.csv"
+OPENCLAW_AGENT_PROFILE_PATH = Path(__file__).parent / "openclaw_agent.md"
 OPENCLAW_RESPONSES_URL = os.getenv("OPENCLAW_RESPONSES_URL", "").strip()
 OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "").strip()
 OPENCLAW_AGENT_ID = os.getenv("OPENCLAW_AGENT_ID", "main").strip() or "main"
@@ -183,6 +184,13 @@ def load_artifacts_data() -> pd.DataFrame:
     df["completion_pct"] = pd.to_numeric(df["completion_pct"], errors="coerce").fillna(0)
     df["evidence_score"] = pd.to_numeric(df["evidence_score"], errors="coerce").fillna(0)
     return df
+
+
+@st.cache_data
+def load_openclaw_agent_profile() -> str:
+    if not OPENCLAW_AGENT_PROFILE_PATH.exists():
+        return ""
+    return OPENCLAW_AGENT_PROFILE_PATH.read_text(encoding="utf-8").strip()
 
 
 def format_seed(seed_date, seed_amount) -> str:
@@ -738,6 +746,7 @@ def extract_openclaw_text(response_json: dict) -> str:
 
 
 def ask_openclaw(prompt: str, user_key: str) -> str:
+    agent_profile = load_openclaw_agent_profile()
     headers = {
         "Content-Type": "application/json",
         "x-openclaw-agent-id": OPENCLAW_AGENT_ID,
@@ -747,7 +756,7 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
 
     payload = {
         "model": "openclaw",
-        "input": prompt,
+        "input": build_openclaw_prompt(prompt, agent_profile),
         "user": f"{OPENCLAW_CHAT_USER_PREFIX}:{user_key}",
     }
 
@@ -759,6 +768,19 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
     )
     response.raise_for_status()
     return extract_openclaw_text(response.json())
+
+
+def build_openclaw_prompt(user_prompt: str, agent_profile: str) -> str:
+    if not agent_profile:
+        return user_prompt
+
+    return (
+        "Ниже дан твой постоянный профиль агента и затем новый запрос пользователя.\n\n"
+        "=== ПРОФИЛЬ АГЕНТА ===\n"
+        f"{agent_profile}\n\n"
+        "=== ЗАПРОС ПОЛЬЗОВАТЕЛЯ ===\n"
+        f"{user_prompt}"
+    )
 
 
 def show_chat_tab() -> None:
@@ -790,6 +812,13 @@ def show_chat_tab() -> None:
                 "Переменная `OPENCLAW_RESPONSES_URL` пока не задана. "
                 "После серверного деплоя tab начнет отправлять запросы в OpenClaw."
             )
+
+    with st.expander("Профиль агента", expanded=False):
+        agent_profile = load_openclaw_agent_profile()
+        if agent_profile:
+            st.markdown(agent_profile)
+        else:
+            st.warning("Файл `openclaw_agent.md` не найден.")
 
     if st.button("Очистить диалог", key="clear_chat_history"):
         st.session_state.chat_messages = st.session_state.chat_messages[:1]
