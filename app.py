@@ -132,6 +132,86 @@ CAPABILITY_LABELS = {
     "has_excel_csv_analysis": "Есть анализ Excel или CSV",
     "has_exports_reporting": "Есть экспорт и отчетность",
 }
+CHAT_MODE_CONFIG = {
+    "product": {
+        "label": "Продукт",
+        "description": "Гипотеза, JTBD, сценарии, MVP, приоритеты.",
+        "context": (
+            "Режим: продукт. Сфокусируйся на гипотезе продукта, сегменте вузов, "
+            "JTBD, user journey, MVP и валидации."
+        ),
+        "files": [
+            "artifacts/one_pager.md",
+            "artifacts/jtbd.md",
+            "artifacts/user_journey.md",
+            "artifacts/prd_mvp.md",
+            "artifacts/metrics_and_hypotheses.md",
+        ],
+        "quick_prompts": [
+            "Сформулируй 3 главных продуктовых риска текущей гипотезы.",
+            "Предложи приоритеты MVP на ближайшие 2 недели.",
+            "Разложи текущую гипотезу по JTBD для администратора вуза.",
+        ],
+    },
+    "competitors": {
+        "label": "Конкуренты",
+        "description": "Конкурентная карта, аналоги, сигналы рынка, gap analysis.",
+        "context": (
+            "Режим: конкуренты. Сфокусируйся на конкурентной карте, смежных продуктах, "
+            "дифференциации moreforms и рыночных сигналах."
+        ),
+        "files": [
+            "data/competitors.csv",
+            "data/adoption_mentions.csv",
+            "artifacts/competitor_map.md",
+        ],
+        "quick_prompts": [
+            "Сравни moreforms с 5 ближайшими конкурентами и выдели главные отличия.",
+            "Покажи, какие игроки ближе всего к сценарию вузов и админперсонала.",
+            "Собери shortlist из прямых и смежных конкурентов для пилота с вузом.",
+        ],
+    },
+    "artifacts": {
+        "label": "Артефакты",
+        "description": "Работа с one-pager, PRD, метриками, рисками и другими документами.",
+        "context": (
+            "Режим: артефакты. Сфокусируйся на качестве, полноте и следующем обновлении "
+            "продуктовых документов проекта."
+        ),
+        "files": [
+            "artifacts.md",
+            "data/artifacts.csv",
+            "artifacts/one_pager.md",
+            "artifacts/prd_mvp.md",
+            "artifacts/metrics_and_hypotheses.md",
+            "artifacts/risk_register.md",
+        ],
+        "quick_prompts": [
+            "Какие артефакты сейчас самые слабые и почему?",
+            "Что надо обновить в PRD под текущую гипотезу в вузах?",
+            "Проверь, каких продуктовых артефактов не хватает для пилота.",
+        ],
+    },
+    "development": {
+        "label": "Разработка",
+        "description": "Изменения в коде, UX табов, данные, инфраструктура и deploy.",
+        "context": (
+            "Режим: разработка. Сфокусируйся на коде, структуре приложения, deploy-контуре "
+            "и практических технических изменениях."
+        ),
+        "files": [
+            "app.py",
+            "deploy/docker-compose.yml",
+            "deploy/README.md",
+            "Agents.md",
+        ],
+        "quick_prompts": [
+            "Предложи следующие 3 улучшения для чат-таба в Streamlit.",
+            "Разложи, что осталось доделать для production-контура OpenClaw.",
+            "Покажи, какие файлы надо менять для следующего улучшения интерфейса.",
+        ],
+    },
+}
 
 
 def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
@@ -770,6 +850,12 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
     return extract_openclaw_text(response.json())
 
 
+def run_chat_turn(raw_prompt: str, mode_key: str) -> str:
+    prompt = build_mode_prompt(raw_prompt, mode_key)
+    user_key = get_authenticated_user_key()
+    return ask_openclaw(prompt, user_key)
+
+
 def build_openclaw_prompt(user_prompt: str, agent_profile: str) -> str:
     if not agent_profile:
         return user_prompt
@@ -783,23 +869,73 @@ def build_openclaw_prompt(user_prompt: str, agent_profile: str) -> str:
     )
 
 
+def build_mode_prompt(user_prompt: str, mode_key: str) -> str:
+    mode_config = CHAT_MODE_CONFIG.get(mode_key)
+    if not mode_config:
+        return user_prompt
+
+    files = "\n".join(f"- {path}" for path in mode_config["files"])
+    return (
+        f"{mode_config['context']}\n\n"
+        "При ответе опирайся в первую очередь на эти файлы проекта:\n"
+        f"{files}\n\n"
+        "Новый запрос:\n"
+        f"{user_prompt}"
+    )
+
+
+def get_chat_messages(mode_key: str) -> list[dict[str, str]]:
+    history_key = f"chat_messages_{mode_key}"
+    mode_label = CHAT_MODE_CONFIG[mode_key]["label"]
+    mode_description = CHAT_MODE_CONFIG[mode_key]["description"]
+    default_message = {
+        "role": "assistant",
+        "content": (
+            f"Режим `{mode_label}`.\n\n"
+            f"{mode_description}\n\n"
+            "Спроси меня про проект, и я отвечу как рабочий агент OpenClaw."
+        ),
+    }
+    if history_key not in st.session_state:
+        st.session_state[history_key] = [default_message]
+    return st.session_state[history_key]
+
+
+def set_chat_messages(mode_key: str, messages: list[dict[str, str]]) -> None:
+    st.session_state[f"chat_messages_{mode_key}"] = messages
+
+
+def render_quick_chat_actions(mode_key: str) -> str | None:
+    quick_prompts = CHAT_MODE_CONFIG[mode_key]["quick_prompts"]
+    columns = st.columns(len(quick_prompts))
+    for index, quick_prompt in enumerate(quick_prompts):
+        if columns[index].button(
+            quick_prompt,
+            key=f"quick_prompt_{mode_key}_{index}",
+            use_container_width=True,
+        ):
+            return quick_prompt
+    return None
+
+
 def show_chat_tab() -> None:
     st.subheader("Чат-бот")
     st.caption(
         "Интерфейс для работы с OpenClaw через Streamlit. "
         "Контракт рассчитан на OpenResponses API `POST /v1/responses`."
     )
+    mode_key = st.selectbox(
+        "Режим работы",
+        list(CHAT_MODE_CONFIG.keys()),
+        format_func=lambda value: CHAT_MODE_CONFIG[value]["label"],
+    )
+    mode_config = CHAT_MODE_CONFIG[mode_key]
+    messages = get_chat_messages(mode_key)
 
-    if "chat_messages" not in st.session_state:
-        st.session_state.chat_messages = [
-            {
-                "role": "assistant",
-                "content": (
-                    "Я готов работать с проектными файлами и артефактами через OpenClaw. "
-                    "Спроси про конкурентов, артефакты или гипотезу."
-                ),
-            }
-        ]
+    st.caption(
+        f"Сейчас активен режим: **{mode_config['label']}**. "
+        f"{mode_config['description']}"
+    )
 
     with st.expander("Статус backend", expanded=not openclaw_is_configured()):
         st.markdown(f"**OpenClaw endpoint:** `{OPENCLAW_RESPONSES_URL or 'не задан'}`")
@@ -820,19 +956,31 @@ def show_chat_tab() -> None:
         else:
             st.warning("Файл `openclaw_agent.md` не найден.")
 
-    if st.button("Очистить диалог", key="clear_chat_history"):
-        st.session_state.chat_messages = st.session_state.chat_messages[:1]
+    with st.expander("Фокус режима", expanded=False):
+        st.markdown(f"**Что делает режим:** {mode_config['description']}")
+        st.markdown("**Ключевые файлы:**")
+        for path in mode_config["files"]:
+            st.markdown(f"- `{path}`")
+
+    st.markdown("**Быстрые действия**")
+    selected_quick_prompt = render_quick_chat_actions(mode_key)
+
+    if st.button("Очистить диалог", key=f"clear_chat_history_{mode_key}"):
+        set_chat_messages(mode_key, messages[:1])
         st.rerun()
 
-    for message in st.session_state.chat_messages:
+    for message in messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    prompt = st.chat_input("Напиши вопрос по проекту, артефактам или конкурентам")
+    prompt = selected_quick_prompt or st.chat_input(
+        "Напиши вопрос по проекту, артефактам, конкурентам или разработке"
+    )
     if not prompt:
         return
 
-    st.session_state.chat_messages.append({"role": "user", "content": prompt})
+    messages.append({"role": "user", "content": prompt})
+    set_chat_messages(mode_key, messages)
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -845,8 +993,7 @@ def show_chat_tab() -> None:
             st.markdown(reply)
         else:
             try:
-                user_key = get_authenticated_user_key()
-                reply = ask_openclaw(prompt, user_key)
+                reply = run_chat_turn(prompt, mode_key)
                 st.markdown(reply)
             except requests.HTTPError as exc:
                 response_text = exc.response.text[:500] if exc.response is not None else ""
@@ -856,7 +1003,8 @@ def show_chat_tab() -> None:
                 reply = f"Не удалось связаться с OpenClaw: `{exc}`"
                 st.error(reply)
 
-    st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+    messages.append({"role": "assistant", "content": reply})
+    set_chat_messages(mode_key, messages)
 
 
 def main() -> None:
