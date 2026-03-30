@@ -2,7 +2,7 @@
 
 Этот каталог хранит безопасные deploy-артефакты для серверного контура:
 
-- `docker-compose.yml` — контейнеры `streamlit`, `oauth2-proxy`, `caddy`, `openclaw`
+- `docker-compose.yml` — контейнеры `streamlit`, `oauth2-proxy`, `caddy`
 - `streamlit.Dockerfile` — образ для текущего дашборда
 - `Caddyfile` — reverse proxy и автоматический HTTPS
 - `.env.example` — шаблон переменных окружения без секретов
@@ -10,12 +10,12 @@
 
 ## Целевой контур
 
-`Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> OpenClaw`
+`Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> OpenClaw Gateway`
 
 Ключевые принципы:
 
 - публично открыт только `Caddy`
-- `Streamlit` и `OpenClaw` живут во внутренней docker-сети
+- `Streamlit` живет в docker-сети, а `OpenClaw Gateway` поднимается на хосте
 - доступ в приложение идет только после Google login через `oauth2-proxy`
 - реальные секреты не хранятся в git
 
@@ -34,8 +34,9 @@ cp deploy/.env.example /srv/moreforms/runtime/.env
 - `OAUTH2_PROXY_CLIENT_SECRET`
 - `OAUTH2_PROXY_COOKIE_SECRET`
 - `OAUTH2_PROXY_ALLOWED_EMAILS_FILE`
-- `OPENCLAW_GATEWAY_TOKEN`
-- при необходимости `OPENCLAW_IMAGE`
+- `OPENCLAW_RESPONSES_URL`
+- `OPENCLAW_AGENT_ID`
+- `OPENCLAW_CHAT_USER_PREFIX`
 
 3. Создать файл allowlist для Google-логина, по одному email на строку:
 
@@ -55,11 +56,10 @@ cd /srv/moreforms/deploy/repo/deploy
 docker compose --env-file /srv/moreforms/runtime/.env up -d --build
 ```
 
-5. Когда будет готов образ/способ установки OpenClaw, поднять и его:
+5. Поднять `OpenClaw Gateway` на хосте как systemd unit и направить `Streamlit` в:
 
 ```bash
-cd /srv/moreforms/deploy/repo/deploy
-docker compose --env-file /srv/moreforms/runtime/.env --profile openclaw up -d --build
+http://host.docker.internal:18789/v1/responses
 ```
 
 ## Google OAuth
@@ -72,18 +72,14 @@ https://app.moreforms.ru/oauth2/callback
 
 ## OpenClaw
 
-Текущий шаблон рассчитывает на совместимый gateway endpoint:
+Текущий шаблон рассчитывает на host-level gateway endpoint:
 
 ```text
-http://openclaw-gateway:18789/v1/responses
+http://host.docker.internal:18789/v1/responses
 ```
 
-и на gateway token в `Authorization: Bearer ...`.
-
-Контейнер `openclaw-gateway` в `docker-compose.yml` оставлен как production scaffold и вынесен в профиль `openclaw`. Перед боевым запуском нужно:
-
-- либо использовать готовый образ/сборку OpenClaw,
-- либо заменить сервис на тот способ установки, который ты выберешь по официальной документации.
+На VPS удобнее поднимать `OpenClaw Gateway` как host-level service от отдельного пользователя `openclaw`, а не как контейнер.
+Если gateway слушает только на внутреннем bridge-адресе Docker, `OPENCLAW_GATEWAY_TOKEN` можно оставить пустым: Streamlit добавит `Authorization` header только если токен задан.
 
 ## Git sync
 
@@ -98,6 +94,5 @@ http://openclaw-gateway:18789/v1/responses
 - делает `git fetch`
 - fast-forward на `origin/main`
 - перезапускает контейнеры через `docker compose up -d --build`
-- если задан `COMPOSE_PROFILE=openclaw`, включает профиль OpenClaw
 
 Его удобно вызывать из webhook handler или по cron.
