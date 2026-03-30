@@ -1,6 +1,8 @@
+import os
 from pathlib import Path
 
 import pandas as pd
+import requests
 import streamlit as st
 
 
@@ -13,6 +15,10 @@ st.set_page_config(
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
 ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
 ARTIFACTS_PATH = Path(__file__).parent / "data" / "artifacts.csv"
+OPENCLAW_RESPONSES_URL = os.getenv("OPENCLAW_RESPONSES_URL", "").strip()
+OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "").strip()
+OPENCLAW_AGENT_ID = os.getenv("OPENCLAW_AGENT_ID", "main").strip() or "main"
+OPENCLAW_CHAT_USER_PREFIX = os.getenv("OPENCLAW_CHAT_USER_PREFIX", "streamlit").strip() or "streamlit"
 DEFAULT_COLUMNS = {
     "company_name": "",
     "website": "",
@@ -690,6 +696,140 @@ def show_artifacts_tab() -> None:
     show_artifact_cards(filtered)
 
 
+def get_authenticated_user_key() -> str:
+    headers = getattr(st.context, "headers", {}) or {}
+    for header in (
+        "x-auth-request-email",
+        "x-forwarded-email",
+        "x-auth-request-user",
+        "x-forwarded-user",
+    ):
+        value = headers.get(header)
+        if value:
+            return str(value)
+    return "anonymous"
+
+
+def openclaw_is_configured() -> bool:
+    return bool(OPENCLAW_RESPONSES_URL)
+
+
+def extract_openclaw_text(response_json: dict) -> str:
+    output_text = response_json.get("output_text")
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
+
+    chunks: list[str] = []
+    for item in response_json.get("output", []):
+        if isinstance(item, dict) and item.get("type") == "message":
+            for content in item.get("content", []):
+                if not isinstance(content, dict):
+                    continue
+                if content.get("type") == "output_text" and content.get("text"):
+                    chunks.append(str(content["text"]))
+                elif content.get("type") == "text" and content.get("text"):
+                    chunks.append(str(content["text"]))
+
+    text = "\n\n".join(chunk.strip() for chunk in chunks if chunk and chunk.strip())
+    if text:
+        return text
+
+    return "OpenClaw вернул ответ без текстового блока."
+
+
+def ask_openclaw(prompt: str, user_key: str) -> str:
+    headers = {
+        "Content-Type": "application/json",
+        "x-openclaw-agent-id": OPENCLAW_AGENT_ID,
+    }
+    if OPENCLAW_GATEWAY_TOKEN:
+        headers["Authorization"] = f"Bearer {OPENCLAW_GATEWAY_TOKEN}"
+
+    payload = {
+        "model": "openclaw",
+        "input": prompt,
+        "user": f"{OPENCLAW_CHAT_USER_PREFIX}:{user_key}",
+    }
+
+    response = requests.post(
+        OPENCLAW_RESPONSES_URL,
+        headers=headers,
+        json=payload,
+        timeout=120,
+    )
+    response.raise_for_status()
+    return extract_openclaw_text(response.json())
+
+
+def show_chat_tab() -> None:
+    st.subheader("Чат-бот")
+    st.caption(
+        "Интерфейс для работы с OpenClaw через Streamlit. "
+        "Контракт рассчитан на OpenResponses API `POST /v1/responses`."
+    )
+
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "Я готов работать с проектными файлами и артефактами через OpenClaw. "
+                    "Спроси про конкурентов, артефакты или гипотезу."
+                ),
+            }
+        ]
+
+    with st.expander("Статус backend", expanded=not openclaw_is_configured()):
+        st.markdown(f"**OpenClaw endpoint:** `{OPENCLAW_RESPONSES_URL or 'не задан'}`")
+        st.markdown(f"**Agent ID:** `{OPENCLAW_AGENT_ID}`")
+        st.markdown(f"**Пользователь:** `{get_authenticated_user_key()}`")
+        if openclaw_is_configured():
+            st.success("Контракт OpenClaw задан. После деплоя серверный tab сможет ходить в gateway.")
+        else:
+            st.warning(
+                "Переменная `OPENCLAW_RESPONSES_URL` пока не задана. "
+                "После серверного деплоя tab начнет отправлять запросы в OpenClaw."
+            )
+
+    if st.button("Очистить диалог", key="clear_chat_history"):
+        st.session_state.chat_messages = st.session_state.chat_messages[:1]
+        st.rerun()
+
+    for message in st.session_state.chat_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    prompt = st.chat_input("Напиши вопрос по проекту, артефактам или конкурентам")
+    if not prompt:
+        return
+
+    st.session_state.chat_messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        if not openclaw_is_configured():
+            reply = (
+                "Чат-контур уже добавлен, но OpenClaw backend еще не подключен к этому окружению. "
+                "После деплоя на сервере запросы пойдут в `OPENCLAW_RESPONSES_URL`."
+            )
+            st.markdown(reply)
+        else:
+            try:
+                user_key = get_authenticated_user_key()
+                reply = ask_openclaw(prompt, user_key)
+                st.markdown(reply)
+            except requests.HTTPError as exc:
+                response_text = exc.response.text[:500] if exc.response is not None else ""
+                reply = f"OpenClaw вернул HTTP-ошибку: `{exc}`\n\n{response_text}"
+                st.error(reply)
+            except requests.RequestException as exc:
+                reply = f"Не удалось связаться с OpenClaw: `{exc}`"
+                st.error(reply)
+
+    st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+
+
 def main() -> None:
     st.title("Moreforms: продуктовая карта")
     st.caption(
@@ -697,8 +837,8 @@ def main() -> None:
         "для гипотезы форм и аналитики данных в вузах."
     )
 
-    tab_competitors, tab_adoption, tab_artifacts = st.tabs(
-        ["Конкуренты", "Внедрения и сигналы", "Продуктовые артефакты"]
+    tab_competitors, tab_adoption, tab_artifacts, tab_chat = st.tabs(
+        ["Конкуренты", "Внедрения и сигналы", "Продуктовые артефакты", "Чат-бот"]
     )
 
     with tab_competitors:
@@ -720,6 +860,9 @@ def main() -> None:
 
     with tab_artifacts:
         show_artifacts_tab()
+
+    with tab_chat:
+        show_chat_tab()
 
 
 if __name__ == "__main__":

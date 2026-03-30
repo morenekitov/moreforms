@@ -1,0 +1,5 @@
+{$APP_DOMAIN} {
+    encode gzip zstd
+
+    reverse_proxy oauth2-proxy:4180
+}

@@ -10,6 +10,7 @@ Competitor tracker and Streamlit dashboard for the `moreforms` project.
 - `data/competitors.csv` — competitor database
 - `data/artifacts.csv` — product artifacts registry
 - `app.py` — Streamlit dashboard
+- `deploy/` — server deployment scaffold for Streamlit, Google login, and OpenClaw
 - `workspace_template_guide.md` — how to use the AI-first workspace template in `moreforms`
 - `references/ai-first-workspace-template` — external reference workspace template as git submodule
 
