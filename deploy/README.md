@@ -6,16 +6,17 @@
 - `streamlit.Dockerfile` — образ для текущего дашборда
 - `Caddyfile` — reverse proxy и автоматический HTTPS
 - `.env.example` — шаблон переменных окружения без секретов
+- `openclaw_responses_adapter.py` — внутренний HTTP-adapter для вызова `openclaw agent`
 - `scripts/server-sync.sh` — pull-and-restart сценарий для сервера
 
 ## Целевой контур
 
-`Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> OpenClaw Gateway`
+`Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> OpenClaw HTTP adapter -> OpenClaw agent`
 
 Ключевые принципы:
 
 - публично открыт только `Caddy`
-- `Streamlit` живет в docker-сети, а `OpenClaw Gateway` поднимается на хосте
+- `Streamlit` живет в docker-сети, а OpenClaw вызывается через внутренний host-level adapter
 - доступ в приложение идет только после Google login через `oauth2-proxy`
 - реальные секреты не хранятся в git
 
@@ -56,10 +57,10 @@ cd /srv/moreforms/deploy/repo/deploy
 docker compose --env-file /srv/moreforms/runtime/.env up -d --build
 ```
 
-5. Поднять `OpenClaw Gateway` на хосте как systemd unit и направить `Streamlit` в:
+5. Поднять внутренний OpenClaw adapter на хосте как systemd unit и направить `Streamlit` в:
 
 ```bash
-http://host.docker.internal:18789/v1/responses
+http://host.docker.internal:18889/v1/responses
 ```
 
 ## Google OAuth
@@ -72,14 +73,14 @@ https://app.moreforms.ru/oauth2/callback
 
 ## OpenClaw
 
-Текущий шаблон рассчитывает на host-level gateway endpoint:
+Текущий шаблон рассчитывает на host-level adapter endpoint:
 
 ```text
-http://host.docker.internal:18789/v1/responses
+http://host.docker.internal:18889/v1/responses
 ```
 
-На VPS удобнее поднимать `OpenClaw Gateway` как host-level service от отдельного пользователя `openclaw`, а не как контейнер.
-Если gateway слушает только на внутреннем bridge-адресе Docker, `OPENCLAW_GATEWAY_TOKEN` можно оставить пустым: Streamlit добавит `Authorization` header только если токен задан.
+Adapter вызывает `openclaw agent --json` от пользователя `openclaw` и возвращает результат в формате, который уже понимает чат в Streamlit.
+На VPS это надежнее, чем напрямую интегрироваться с `OpenClaw Gateway /v1/responses`, где есть device/operator auth-слой.
 
 ## Git sync
 
