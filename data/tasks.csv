@@ -1,0 +1,5 @@
+task_name,workstream,priority,status,owner,due_date,related_artifact,outcome,notes
+Собрать top-10 SMB pain points,Research,критично,в работе,Никита,2026-04-03,artifacts/one_pager.md,Обновленный список pain points для one-pager и JTBD,Нужен synthesis из текущих материалов и конкурентов
+Подготовить список интервью,Discovery,критично,запланировано,Никита,2026-04-02,data/contacts.csv,Shortlist контактов для следующего discovery sprint,Связать с ICP и сегментами из ideas.csv
+Переупаковать competitor landscape под SMB,Strategy,высокий,в работе,AI agent,2026-04-04,artifacts/competitor_map.md,Более чистая карта прямых и смежных игроков,Текущая карта наследует старый контекст
+Собрать generated dashboard по активным идеям,App,средний,backlog,AI agent,2026-04-05,generated_dashboards,Markdown dashboard со сравнением идей,Удобно для еженедельных синков

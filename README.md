@@ -1,18 +1,38 @@
 # moreforms
 
-Competitor tracker and Streamlit dashboard for the `moreforms` project.
+AI-first discovery workspace for a team exploring startup ideas for SMB.
 
-## Files
+## Что внутри
 
-- `Agents.md` — operating instructions for the assistant
-- `artifacts.md` — overview of product artifacts
-- `artifacts/` — dedicated product artifact documents
-- `data/competitors.csv` — competitor database
-- `data/artifacts.csv` — product artifacts registry
-- `app.py` — Streamlit dashboard
-- `deploy/` — server deployment scaffold for Streamlit, Google login, and OpenClaw
-- `workspace_template_guide.md` — how to use the AI-first workspace template in `moreforms`
-- `references/ai-first-workspace-template` — external reference workspace template as git submodule
+- shared workspace для идей, backlog, контактов и исследовательских материалов;
+- конкурентная карта и рыночные сигналы;
+- продуктовые артефакты;
+- отдельный chat dashboard на OpenClaw;
+- generated dashboards, которые чат может создавать и обновлять.
+
+## Структура
+
+- `workspace_structure.md` — базовая модель совместной работы
+- `Agents.md` — правила для агента
+- `artifacts.md` — обзор обязательных discovery-артефактов
+- `artifacts/` — отдельные артефакты
+- `data/ideas.csv` — идеи и venture thesis
+- `data/tasks.csv` — backlog и next actions
+- `data/contacts.csv` — контакты и interview pipeline
+- `data/research_library.csv` — статьи, видео, заметки и market signals
+- `data/competitors.csv` — конкурентная карта
+- `data/adoption_mentions.csv` — кейсы и сигналы использования похожих продуктов
+- `data/artifacts.csv` — реестр артефактов
+- `app.py` — Streamlit workspace
+- `deploy/` — серверный контур для Streamlit, Google login и OpenClaw
+- `generated_dashboards/` — lightweight dashboards, создаваемые через чат
+- `workspace_template_guide.md` — как применить AI-first workspace template к этому проекту
+
+## URL-режимы
+
+- основной workspace dashboard: `https://app.moreforms.ru`
+- chat dashboard: `https://app.moreforms.ru?view=chat`
+- generated dashboard: `https://app.moreforms.ru?dashboard=<slug>`
 
 ## Local run
 
@@ -22,19 +42,15 @@ python3 -m venv .venv
 .venv/bin/streamlit run app.py
 ```
 
-## Streamlit Community Cloud
-
-If Community Cloud fails during dependency install, use the repository root `requirements.txt` from this repo and reboot the app after pushing dependency changes.
-
-If you need to choose a Python version in Streamlit Community Cloud, prefer `Python 3.12` or a currently supported version from the deployment UI.
-
 ## AI-first Workspace Reference
 
-This project includes the repository `VsevolodUstinov/ai-first-workspace-template` as a git submodule under:
+В проект подключен reference-репозиторий:
 
 `references/ai-first-workspace-template`
 
-Use it as a reference for AI-first project operations, repository structure, and context management.
-The local adaptation guide is in:
+Он нужен как источник паттернов для:
 
-`workspace_template_guide.md`
+- organization memory;
+- structuring of discovery work;
+- context separation for AI;
+- operating workflows between strategy, research, product and delivery.

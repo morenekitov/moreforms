@@ -7,14 +7,19 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="Moreforms: продуктовая карта",
+    page_title="Moreforms: discovery workspace",
     page_icon="📊",
     layout="wide",
 )
 
+WORKSPACE_STRUCTURE_PATH = Path(__file__).parent / "workspace_structure.md"
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
 ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
 ARTIFACTS_PATH = Path(__file__).parent / "data" / "artifacts.csv"
+IDEAS_PATH = Path(__file__).parent / "data" / "ideas.csv"
+TASKS_PATH = Path(__file__).parent / "data" / "tasks.csv"
+CONTACTS_PATH = Path(__file__).parent / "data" / "contacts.csv"
+RESEARCH_LIBRARY_PATH = Path(__file__).parent / "data" / "research_library.csv"
 OPENCLAW_AGENT_PROFILE_PATH = Path(__file__).parent / "openclaw_agent.md"
 OPENCLAW_STREAMLIT_GUIDE_PATH = Path(__file__).parent / "openclaw_streamlit.md"
 GENERATED_DASHBOARDS_DIR = Path(__file__).parent / "generated_dashboards"
@@ -93,6 +98,54 @@ ARTIFACTS_DEFAULT_COLUMNS = {
     "validation_method": "",
     "next_step": "",
 }
+IDEAS_DEFAULT_COLUMNS = {
+    "idea_name": "",
+    "theme": "",
+    "segment": "",
+    "status": "",
+    "priority": "",
+    "thesis": "",
+    "evidence": "",
+    "next_step": "",
+    "owner": "",
+    "links": "",
+    "notes": "",
+}
+TASKS_DEFAULT_COLUMNS = {
+    "task_name": "",
+    "workstream": "",
+    "priority": "",
+    "status": "",
+    "owner": "",
+    "due_date": "",
+    "related_artifact": "",
+    "outcome": "",
+    "notes": "",
+}
+CONTACTS_DEFAULT_COLUMNS = {
+    "contact_name": "",
+    "organization": "",
+    "role": "",
+    "segment": "",
+    "stage": "",
+    "last_touch_date": "",
+    "next_step": "",
+    "source": "",
+    "links": "",
+    "notes": "",
+}
+RESEARCH_LIBRARY_DEFAULT_COLUMNS = {
+    "title": "",
+    "item_type": "",
+    "theme": "",
+    "geography": "",
+    "source_name": "",
+    "source_url": "",
+    "summary": "",
+    "why_it_matters": "",
+    "related_idea": "",
+    "tags": "",
+}
 LEGACY_VALUE_TRANSLATIONS = {
     "primary_client": {
         "insights and product research teams": "команды исследований и продуктовых исследований",
@@ -109,7 +162,7 @@ LEGACY_VALUE_TRANSLATIONS = {
         "business users without ML teams": "бизнес-пользователи без собственной ML-команды",
         "marketing and revenue teams": "маркетинговые и коммерческие команды",
         "operations teams and founders": "операционные команды и фаундеры",
-        "makers, educators, and small teams": "мейкеры, преподаватели и небольшие команды",
+        "makers, educators, and small teams": "мейкеры, независимые создатели и небольшие команды",
         "operations teams building workflow forms": "операционные команды, собирающие workflow-формы",
         "product and UX research teams": "продуктовые команды и UX-исследователи",
         "enterprise data consumers outside the data team": "корпоративные пользователи данных вне команд данных",
@@ -140,84 +193,102 @@ CAPABILITY_LABELS = {
     "has_exports_reporting": "Есть экспорт и отчетность",
 }
 CHAT_MODE_CONFIG = {
-    "product": {
-        "label": "Продукт",
-        "description": "Гипотеза, JTBD, сценарии, MVP, приоритеты.",
+    "strategy": {
+        "label": "Стратегия",
+        "description": "Venture thesis, wedge, ICP, JTBD и приоритеты discovery.",
         "context": (
-            "Режим: продукт. Сфокусируйся на гипотезе продукта, сегменте вузов, "
-            "JTBD, user journey, MVP и валидации."
+            "Режим: стратегия. Сфокусируйся на venture thesis, выборе сегмента, wedge, "
+            "JTBD, user journey и ключевых learning loops."
         ),
         "files": [
+            "workspace_structure.md",
             "artifacts/one_pager.md",
             "artifacts/jtbd.md",
             "artifacts/user_journey.md",
             "artifacts/prd_mvp.md",
             "artifacts/metrics_and_hypotheses.md",
+            "data/ideas.csv",
         ],
         "quick_prompts": [
-            "Сформулируй 3 главных продуктовых риска текущей гипотезы.",
-            "Предложи приоритеты MVP на ближайшие 2 недели.",
-            "Разложи текущую гипотезу по JTBD для администратора вуза.",
+            "Сформулируй 3 главных риска текущей venture thesis.",
+            "Предложи приоритеты discovery на ближайшие 2 недели.",
+            "Сравни активные идеи и предложи, что держать в фокусе.",
         ],
     },
-    "competitors": {
-        "label": "Конкуренты",
-        "description": "Конкурентная карта, аналоги, сигналы рынка, gap analysis.",
+    "market": {
+        "label": "Рынок",
+        "description": "Конкуренты, сигналы, category map, customer evidence.",
         "context": (
-            "Режим: конкуренты. Сфокусируйся на конкурентной карте, смежных продуктах, "
-            "дифференциации moreforms и рыночных сигналах."
+            "Режим: рынок. Сфокусируйся на конкурентной карте, category map, смежных "
+            "решениях, customer signals и важности для текущих startup ideas."
         ),
         "files": [
             "data/competitors.csv",
             "data/adoption_mentions.csv",
+            "data/research_library.csv",
             "artifacts/competitor_map.md",
         ],
         "quick_prompts": [
-            "Сравни moreforms с 5 ближайшими конкурентами и выдели главные отличия.",
-            "Покажи, какие игроки ближе всего к сценарию вузов и админперсонала.",
-            "Собери shortlist из прямых и смежных конкурентов для пилота с вузом.",
+            "Собери shortlist из прямых и смежных игроков под текущую thesis.",
+            "Покажи, какие категории рынка недооценены.",
+            "Сравни 5 ближайших конкурентов и выдели gap в позиционировании.",
         ],
     },
-    "artifacts": {
-        "label": "Артефакты",
-        "description": "Работа с one-pager, PRD, метриками, рисками и другими документами.",
+    "workspace": {
+        "label": "Workspace",
+        "description": "Идеи, backlog, контакты, research materials, wiki и next steps.",
         "context": (
-            "Режим: артефакты. Сфокусируйся на качестве, полноте и следующем обновлении "
-            "продуктовых документов проекта."
+            "Режим: workspace. Сфокусируйся на совместной работе команды: ideas backlog, "
+            "контакты, research materials, задачи, wiki и generated dashboards."
         ),
         "files": [
+            "workspace_structure.md",
+            "data/ideas.csv",
+            "data/tasks.csv",
+            "data/contacts.csv",
+            "data/research_library.csv",
             "artifacts.md",
-            "data/artifacts.csv",
-            "artifacts/one_pager.md",
-            "artifacts/prd_mvp.md",
-            "artifacts/metrics_and_hypotheses.md",
-            "artifacts/risk_register.md",
         ],
         "quick_prompts": [
-            "Какие артефакты сейчас самые слабые и почему?",
-            "Что надо обновить в PRD под текущую гипотезу в вузах?",
-            "Проверь, каких продуктовых артефактов не хватает для пилота.",
+            "Покажи, что в workspace сейчас не хватает для нормального discovery.",
+            "Предложи, как почистить backlog идей и задач.",
+            "Собери план следующего discovery sprint по текущим материалам.",
         ],
     },
     "development": {
         "label": "Разработка",
         "description": "Изменения в коде, UX табов, данные, инфраструктура и deploy.",
         "context": (
-            "Режим: разработка. Сфокусируйся на коде, структуре приложения, deploy-контуре "
-            "и практических технических изменениях."
+            "Режим: разработка. Сфокусируйся на коде, структуре workspace dashboard, "
+            "generated dashboards, chat dashboard и deploy-контуре."
         ),
         "files": [
             "app.py",
             "deploy/docker-compose.yml",
             "deploy/README.md",
             "Agents.md",
+            "openclaw_agent.md",
+            "openclaw_streamlit.md",
         ],
         "quick_prompts": [
-            "Предложи следующие 3 улучшения для чат-таба в Streamlit.",
-            "Разложи, что осталось доделать для production-контура OpenClaw.",
+            "Предложи следующие 3 улучшения для workspace dashboard.",
+            "Разложи, что осталось доделать для OpenClaw production contour.",
             "Покажи, какие файлы надо менять для следующего улучшения интерфейса.",
         ],
     },
+}
+
+WORKSPACE_DOC_OPTIONS = {
+    "Операционная модель workspace": "workspace_structure.md",
+    "Обзор артефактов": "artifacts.md",
+    "One-pager": "artifacts/one_pager.md",
+    "Роли и сценарии": "artifacts/roles_and_scenarios.md",
+    "JTBD": "artifacts/jtbd.md",
+    "User journey": "artifacts/user_journey.md",
+    "PRD MVP": "artifacts/prd_mvp.md",
+    "Метрики и гипотезы": "artifacts/metrics_and_hypotheses.md",
+    "Риск-регистр": "artifacts/risk_register.md",
+    "AI workspace template guide": "workspace_template_guide.md",
 }
 
 
@@ -271,6 +342,66 @@ def load_artifacts_data() -> pd.DataFrame:
     df["completion_pct"] = pd.to_numeric(df["completion_pct"], errors="coerce").fillna(0)
     df["evidence_score"] = pd.to_numeric(df["evidence_score"], errors="coerce").fillna(0)
     return df
+
+
+def ensure_ideas_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in IDEAS_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(IDEAS_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_ideas_data() -> pd.DataFrame:
+    df = pd.read_csv(IDEAS_PATH)
+    return ensure_ideas_schema(df)
+
+
+def ensure_tasks_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in TASKS_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(TASKS_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_tasks_data() -> pd.DataFrame:
+    df = pd.read_csv(TASKS_PATH)
+    df = ensure_tasks_schema(df)
+    df["due_date"] = pd.to_datetime(df["due_date"], errors="coerce")
+    return df
+
+
+def ensure_contacts_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in CONTACTS_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(CONTACTS_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_contacts_data() -> pd.DataFrame:
+    df = pd.read_csv(CONTACTS_PATH)
+    df = ensure_contacts_schema(df)
+    df["last_touch_date"] = pd.to_datetime(df["last_touch_date"], errors="coerce")
+    return df
+
+
+def ensure_research_library_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in RESEARCH_LIBRARY_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(RESEARCH_LIBRARY_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_research_library_data() -> pd.DataFrame:
+    df = pd.read_csv(RESEARCH_LIBRARY_PATH)
+    return ensure_research_library_schema(df)
 
 
 @st.cache_data
@@ -422,7 +553,7 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def show_metrics(df: pd.DataFrame) -> None:
-    direct_count = int((df["similarity_type"] == "direct").sum())
+    direct_count = int((df["similarity_type"] == "прямой").sum())
     avg_seed = df["seed_amount_usd_m"].mean()
     countries = df["country"].nunique()
 
@@ -497,7 +628,7 @@ def show_company_cards(df: pd.DataFrame) -> None:
             st.markdown(f'**Ключевые фичи:** {row["key_features"]}')
             st.markdown(f'**Путь пользователя:** {row["user_journey"]}')
             st.markdown(f'**Фичи подробно:** {row["notable_features"]}')
-            st.markdown(f'**Релевантность для РФ:** {row["rf_pilot_relevance"]}')
+            st.markdown(f'**Релевантность для текущей thesis:** {row["rf_pilot_relevance"]}')
             st.markdown(f'**Заметки:** {row["notes"]}')
 
 
@@ -520,13 +651,245 @@ def show_tabbed_views(df: pd.DataFrame) -> None:
             show_company_cards(subset)
 
 
+def show_workspace_overview() -> None:
+    ideas = load_ideas_data()
+    tasks = load_tasks_data()
+    contacts = load_contacts_data()
+    materials = load_research_library_data()
+
+    active_ideas = int(ideas["status"].fillna("").isin(["в фокусе", "на исследовании"]).sum())
+    open_tasks = int(tasks["status"].fillna("").isin(["в работе", "запланировано", "backlog"]).sum())
+    active_contacts = int(contacts["stage"].fillna("").isin(["нужно связаться", "в переписке", "активен"]).sum())
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Идей", len(ideas))
+    col2.metric("В активном фокусе", active_ideas)
+    col3.metric("Открытых задач", open_tasks)
+    col4.metric("Контактов и сигналов", active_contacts + len(materials))
+
+
+def show_workspace_docs() -> None:
+    st.markdown("### Вики и документация")
+    selected_doc = st.selectbox(
+        "Документ",
+        list(WORKSPACE_DOC_OPTIONS.keys()),
+        key="workspace_doc_select",
+    )
+    path_value = WORKSPACE_DOC_OPTIONS[selected_doc]
+    ok, content = read_artifact_content(path_value)
+    st.caption(f"Файл: `{path_value}`")
+    if ok:
+        st.markdown(content)
+    else:
+        st.warning(content)
+
+
+def show_ideas_section() -> None:
+    df = load_ideas_data()
+    col1, col2 = st.columns(2)
+    with col1:
+        statuses = multiselect_main_filter("Статус идеи", df["status"], "ideas_status")
+    with col2:
+        themes = multiselect_main_filter("Тема", df["theme"], "ideas_theme")
+
+    filtered = df.copy()
+    if statuses:
+        filtered = filtered[filtered["status"].isin(statuses)]
+    if themes:
+        filtered = filtered[filtered["theme"].isin(themes)]
+
+    st.dataframe(
+        filtered,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "idea_name": st.column_config.TextColumn("Идея", width="medium"),
+            "theme": st.column_config.TextColumn("Тема"),
+            "segment": st.column_config.TextColumn("Сегмент", width="medium"),
+            "status": st.column_config.TextColumn("Статус"),
+            "priority": st.column_config.TextColumn("Приоритет"),
+            "thesis": st.column_config.TextColumn("Thesis", width="large"),
+            "evidence": st.column_config.TextColumn("Evidence", width="large"),
+            "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
+            "owner": st.column_config.TextColumn("Owner"),
+            "links": st.column_config.TextColumn("Ссылки", width="large"),
+            "notes": st.column_config.TextColumn("Заметки", width="large"),
+        },
+    )
+
+    for row in filtered.to_dict(orient="records"):
+        with st.expander(f'{row["idea_name"]} • {row["status"]} • {row["priority"]}'):
+            st.markdown(f'**Сегмент:** {row["segment"]}')
+            st.markdown(f'**Thesis:** {row["thesis"]}')
+            st.markdown(f'**Evidence:** {row["evidence"]}')
+            st.markdown(f'**Следующий шаг:** {row["next_step"]}')
+            st.markdown(f'**Owner:** {row["owner"]}')
+            st.markdown(f'**Ссылки:** {row["links"] or "нет"}')
+            st.markdown(f'**Заметки:** {row["notes"] or "нет"}')
+
+
+def show_tasks_section() -> None:
+    df = load_tasks_data()
+    col1, col2 = st.columns(2)
+    with col1:
+        statuses = multiselect_main_filter("Статус задачи", df["status"], "tasks_status")
+    with col2:
+        owners = multiselect_main_filter("Owner", df["owner"], "tasks_owner")
+
+    filtered = df.copy()
+    if statuses:
+        filtered = filtered[filtered["status"].isin(statuses)]
+    if owners:
+        filtered = filtered[filtered["owner"].isin(owners)]
+
+    visible = filtered.copy()
+    visible["due_date"] = visible["due_date"].dt.strftime("%Y-%m-%d")
+    st.dataframe(
+        visible,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "task_name": st.column_config.TextColumn("Задача", width="large"),
+            "workstream": st.column_config.TextColumn("Поток"),
+            "priority": st.column_config.TextColumn("Приоритет"),
+            "status": st.column_config.TextColumn("Статус"),
+            "owner": st.column_config.TextColumn("Owner"),
+            "due_date": st.column_config.TextColumn("Срок"),
+            "related_artifact": st.column_config.TextColumn("Связанный файл", width="medium"),
+            "outcome": st.column_config.TextColumn("Ожидаемый результат", width="large"),
+            "notes": st.column_config.TextColumn("Заметки", width="large"),
+        },
+    )
+
+
+def show_contacts_section() -> None:
+    df = load_contacts_data()
+    col1, col2 = st.columns(2)
+    with col1:
+        stages = multiselect_main_filter("Стадия контакта", df["stage"], "contacts_stage")
+    with col2:
+        segments = multiselect_main_filter("Сегмент", df["segment"], "contacts_segment")
+
+    filtered = df.copy()
+    if stages:
+        filtered = filtered[filtered["stage"].isin(stages)]
+    if segments:
+        filtered = filtered[filtered["segment"].isin(segments)]
+
+    visible = filtered.copy()
+    visible["last_touch_date"] = visible["last_touch_date"].dt.strftime("%Y-%m-%d")
+    st.dataframe(
+        visible,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "contact_name": st.column_config.TextColumn("Контакт", width="medium"),
+            "organization": st.column_config.TextColumn("Организация", width="medium"),
+            "role": st.column_config.TextColumn("Роль"),
+            "segment": st.column_config.TextColumn("Сегмент"),
+            "stage": st.column_config.TextColumn("Стадия"),
+            "last_touch_date": st.column_config.TextColumn("Последний контакт"),
+            "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
+            "source": st.column_config.TextColumn("Источник"),
+            "links": st.column_config.TextColumn("Ссылки", width="large"),
+            "notes": st.column_config.TextColumn("Заметки", width="large"),
+        },
+    )
+
+
+def show_research_library_section() -> None:
+    df = load_research_library_data()
+    col1, col2 = st.columns(2)
+    with col1:
+        item_types = multiselect_main_filter("Тип материала", df["item_type"], "research_item_type")
+    with col2:
+        themes = multiselect_main_filter("Тема", df["theme"], "research_theme")
+    query = st.text_input("Поиск по материалам", key="research_query")
+
+    filtered = df.copy()
+    if item_types:
+        filtered = filtered[filtered["item_type"].isin(item_types)]
+    if themes:
+        filtered = filtered[filtered["theme"].isin(themes)]
+    if query:
+        haystack = (
+            filtered["title"].fillna("")
+            + " "
+            + filtered["summary"].fillna("")
+            + " "
+            + filtered["why_it_matters"].fillna("")
+            + " "
+            + filtered["tags"].fillna("")
+        ).str.lower()
+        filtered = filtered[haystack.str.contains(query.lower(), na=False)]
+
+    st.dataframe(
+        filtered,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "title": st.column_config.TextColumn("Материал", width="large"),
+            "item_type": st.column_config.TextColumn("Тип"),
+            "theme": st.column_config.TextColumn("Тема"),
+            "geography": st.column_config.TextColumn("География"),
+            "source_name": st.column_config.TextColumn("Источник"),
+            "source_url": st.column_config.LinkColumn("Ссылка"),
+            "summary": st.column_config.TextColumn("Summary", width="large"),
+            "why_it_matters": st.column_config.TextColumn("Почему важно", width="large"),
+            "related_idea": st.column_config.TextColumn("Связанная идея", width="medium"),
+            "tags": st.column_config.TextColumn("Теги", width="medium"),
+        },
+    )
+
+    for row in filtered.to_dict(orient="records"):
+        with st.expander(f'{row["title"]} • {row["item_type"]} • {row["theme"]}'):
+            st.markdown(f'**География:** {row["geography"]}')
+            st.markdown(f'**Источник:** {row["source_name"] or "нет"}')
+            if row["source_url"]:
+                st.markdown(f'**Ссылка:** [открыть]({row["source_url"]})')
+            st.markdown(f'**Summary:** {row["summary"]}')
+            st.markdown(f'**Почему важно:** {row["why_it_matters"]}')
+            st.markdown(f'**Связанная идея:** {row["related_idea"] or "нет"}')
+            st.markdown(f'**Теги:** {row["tags"] or "нет"}')
+
+
+def show_workspace_tab() -> None:
+    st.subheader("Рабочее пространство")
+    st.caption(
+        "Совместный контур для venture discovery: идеи, backlog, контакты, материалы, "
+        "артефакты и generated dashboards."
+    )
+
+    show_workspace_overview()
+    st.divider()
+
+    tab_docs, tab_ideas, tab_tasks, tab_contacts, tab_research = st.tabs(
+        ["Вики", "Идеи", "Задачи", "Контакты", "Материалы"]
+    )
+
+    with tab_docs:
+        show_workspace_docs()
+
+    with tab_ideas:
+        show_ideas_section()
+
+    with tab_tasks:
+        show_tasks_section()
+
+    with tab_contacts:
+        show_contacts_section()
+
+    with tab_research:
+        show_research_library_section()
+
+
 def multiselect_main_filter(label: str, series: pd.Series, key: str) -> list[str]:
     options = sorted([value for value in series.dropna().unique().tolist() if value])
     return st.multiselect(label, options, key=key, placeholder="Выберите варианты")
 
 
 def apply_adoption_filters(df: pd.DataFrame) -> pd.DataFrame:
-    st.subheader("Фильтры по внедрениям")
+    st.subheader("Фильтры по сигналам")
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -646,7 +1009,7 @@ def show_adoption_table(df: pd.DataFrame) -> None:
 
 
 def show_adoption_cards(df: pd.DataFrame) -> None:
-    st.subheader("Карточки внедрений")
+    st.subheader("Карточки сигналов")
     for row in df.to_dict(orient="records"):
         published_date = "нет данных"
         if pd.notna(row["published_date"]):
@@ -668,14 +1031,14 @@ def show_adoption_cards(df: pd.DataFrame) -> None:
             st.markdown(f'**Дата:** {published_date}')
             st.markdown(f'**Источник:** [{row["source_name"]}]({row["source_url"]})')
             st.markdown(f'**Что используется:** {row["summary"]}')
-            st.markdown(f'**Почему важно для moreforms:** {row["why_it_matters"]}')
+            st.markdown(f'**Почему важно для текущей thesis:** {row["why_it_matters"]}')
 
 
 def show_adoption_tab() -> None:
-    st.subheader("Внедрения и рыночные сигналы")
+    st.subheader("Рынок и сигналы")
     st.caption(
-        "Точечные кейсы и официальные сигналы по использованию похожих продуктов "
-        "в вузах, образовании, ФОИВ, ведомствах и администрациях."
+        "Customer stories, deployment signals, новости и наблюдения о том, как "
+        "похожие продукты используются на рынке."
     )
 
     df = load_adoption_data()
@@ -712,9 +1075,9 @@ def show_artifacts_context() -> None:
     st.subheader("Текущий продуктовый фокус")
     st.markdown(
         """
-**Сегмент первой итерации:** вузы, административный персонал, руководители курсов и преподаватели.  
-**Базовый сценарий:** `текст или видео -> автосоздание Яндекс.Формы -> загрузка результатов -> дашборд по промпту`.  
-**Продуктовая цель первой версии:** сократить ручную сборку форм, ускорить анализ Excel и опросных данных и дать понятные шаблоны визуализации без отдельного аналитика.
+**Текущий режим:** shared venture discovery workspace.  
+**Базовый контур:** `idea -> evidence -> competitor map -> contacts -> prototype -> decision`.  
+**Задача первой версии:** дать один рабочий cockpit для команды и AI, а не разрозненный набор чатов и заметок.
 """
     )
 
@@ -813,8 +1176,8 @@ def show_artifact_cards(df: pd.DataFrame) -> None:
 def show_artifacts_tab() -> None:
     st.subheader("Продуктовые артефакты")
     st.caption(
-        "Контур продуктовой проработки для текущей гипотезы: "
-        "генерация Яндекс.Форм из текста или видео и анализ результатов в вузах."
+        "Discovery-артефакты, в которых фиксируются thesis, roles, JTBD, MVP, "
+        "гипотезы и риски."
     )
 
     df = load_artifacts_data()
@@ -986,7 +1349,7 @@ def render_top_navigation(view: str) -> None:
     main_link = MAIN_DASHBOARD_PUBLIC_URL
     chat_link = CHAT_DASHBOARD_PUBLIC_URL
     if view == "chat":
-        st.markdown(f"[Открыть основной дашборд]({main_link})")
+        st.markdown(f"[Открыть основной workspace]({main_link})")
     else:
         st.markdown(f"[Открыть чат-дашборд]({chat_link})")
 
@@ -994,13 +1357,13 @@ def render_top_navigation(view: str) -> None:
 def show_generated_dashboards_tab() -> None:
     st.subheader("Созданные дашборды")
     st.caption(
-        "Здесь отображаются lightweight dashboard-файлы, созданные или обновленные через чатбота OpenClaw."
+        "Здесь отображаются lightweight views, созданные или обновленные через чатбота OpenClaw."
     )
 
     dashboards = list_generated_dashboards()
     if not dashboards:
         st.info(
-            "Пока нет созданных дашбордов. Попроси чатбота создать dashboard и вернуть ссылку."
+            "Пока нет созданных generated dashboards. Попроси чатбота создать dashboard и вернуть ссылку."
         )
         return
 
@@ -1027,7 +1390,7 @@ def show_generated_dashboard_page(slug: str) -> None:
     st.caption(f"Generated dashboard: `{dashboard['slug']}`")
     render_top_navigation("generated")
     st.markdown(
-        f"[Назад к основному дашборду]({MAIN_DASHBOARD_PUBLIC_URL}) | "
+        f"[Назад к основному workspace]({MAIN_DASHBOARD_PUBLIC_URL}) | "
         f"[Открыть чат-дашборд]({CHAT_DASHBOARD_PUBLIC_URL})"
     )
     st.divider()
@@ -1037,7 +1400,7 @@ def show_generated_dashboard_page(slug: str) -> None:
 def show_chat_tab() -> None:
     st.subheader("Чат-бот")
     st.caption(
-        "Интерфейс для работы с OpenClaw через Streamlit. "
+        "Интерфейс для работы с OpenClaw по venture discovery, knowledge base и changes в workspace. "
         "Контракт рассчитан на OpenResponses API `POST /v1/responses`."
     )
     render_top_navigation("chat")
@@ -1098,7 +1461,7 @@ def show_chat_tab() -> None:
             st.markdown(message["content"])
 
     prompt = selected_quick_prompt or st.chat_input(
-        "Напиши вопрос по проекту, артефактам, конкурентам или разработке"
+        "Напиши вопрос по workspace, идеям, материалам, конкурентам или разработке"
     )
     if not prompt:
         return
@@ -1141,23 +1504,26 @@ def main() -> None:
         return
 
     if view == "chat":
-        st.title("Moreforms: чат")
+        st.title("Moreforms: чат-дашборд")
         st.caption(
-            "Отдельный чат-дашборд для работы с OpenClaw как продуктовым менеджером и разработчиком."
+            "Отдельный chat workspace для работы с OpenClaw по стратегии, research, knowledge base и изменениям дашбордов."
         )
         show_chat_tab()
         return
 
-    st.title("Moreforms: основной дашборд")
+    st.title("Moreforms: discovery workspace")
     st.caption(
-        "Конкуренты, внедренческие сигналы, продуктовые артефакты и созданные дашборды "
-        "для гипотезы форм и аналитики данных в вузах."
+        "Shared cockpit для venture discovery: идеи, задачи, контакты, research materials, "
+        "конкуренты, артефакты и generated dashboards."
     )
     render_top_navigation("main")
 
-    tab_competitors, tab_adoption, tab_artifacts, tab_generated = st.tabs(
-        ["Конкуренты", "Внедрения и сигналы", "Продуктовые артефакты", "Созданные дашборды"]
+    tab_workspace, tab_competitors, tab_adoption, tab_artifacts, tab_generated = st.tabs(
+        ["Рабочее пространство", "Конкуренты", "Рынок и сигналы", "Артефакты", "Созданные дашборды"]
     )
+
+    with tab_workspace:
+        show_workspace_tab()
 
     with tab_competitors:
         df = load_data()

@@ -1,12 +1,12 @@
 # Generated Dashboards
 
-Здесь лежат lightweight dashboard-страницы, которые создает или обновляет OpenClaw по запросу пользователя.
+Здесь лежат lightweight dashboard-страницы, которые создает или обновляет OpenClaw.
 
 Правила:
 
 - один dashboard = один markdown-файл;
-- имя файла = `slug`, например `university-enrollment-summary.md`;
-- основная ссылка формируется как:
-  - `https://app.moreforms.ru?dashboard=<slug>`
+- имя файла = `slug`;
+- ссылка формируется как `https://app.moreforms.ru?dashboard=<slug>`;
+- generated dashboards нужны для частных views: сравнений, weekly reviews, idea summaries, interview syntheses, market maps.
 
-Если нужна сложная логика Streamlit, фильтры, графики или отдельный runtime, надо менять основной код приложения, а не только этот каталог.
+Если нужен сложный интерактивный runtime UI, надо менять `app.py`, а не только этот каталог.

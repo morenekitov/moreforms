@@ -1,6 +1,6 @@
 # Серверный деплой moreforms
 
-Этот каталог хранит безопасные deploy-артефакты для серверного контура:
+Этот каталог хранит deploy-артефакты для server-side контура AI-first discovery workspace:
 
 - `docker-compose.yml` — контейнеры `streamlit`, `oauth2-proxy`, `caddy`
 - `streamlit.Dockerfile` — образ для текущего дашборда
@@ -15,7 +15,7 @@
 
 ## Пользовательские URL
 
-- основной дашборд: `https://app.moreforms.ru`
+- основной workspace dashboard: `https://app.moreforms.ru`
 - чат-дашборд: `https://app.moreforms.ru?view=chat`
 - generated dashboard: `https://app.moreforms.ru?dashboard=<slug>`
 
