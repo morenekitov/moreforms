@@ -899,7 +899,7 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
         OPENCLAW_RESPONSES_URL,
         headers=headers,
         json=payload,
-        timeout=300,
+        timeout=600,
     )
     response.raise_for_status()
     return extract_openclaw_text(response.json())
