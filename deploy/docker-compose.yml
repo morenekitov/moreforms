@@ -23,6 +23,7 @@ services:
       - --http-address=0.0.0.0:4180
       - --upstream=http://streamlit:8501
       - --email-domain=*
+      - --authenticated-emails-file=/etc/oauth2-proxy/allowed-emails
       - --redirect-url=https://${APP_DOMAIN}/oauth2/callback
       - --cookie-secure=true
       - --cookie-httponly=true
@@ -32,11 +33,12 @@ services:
       - --pass-user-headers=true
       - --pass-authorization-header=true
       - --scope=openid email profile
-      - --allowed-email=${OAUTH2_PROXY_ALLOWED_EMAILS}
     environment:
       OAUTH2_PROXY_CLIENT_ID: ${OAUTH2_PROXY_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET}
+    volumes:
+      - ${OAUTH2_PROXY_ALLOWED_EMAILS_FILE}:/etc/oauth2-proxy/allowed-emails:ro
     expose:
       - "4180"
 

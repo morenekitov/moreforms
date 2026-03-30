@@ -33,18 +33,29 @@ cp deploy/.env.example /srv/moreforms/runtime/.env
 - `OAUTH2_PROXY_CLIENT_ID`
 - `OAUTH2_PROXY_CLIENT_SECRET`
 - `OAUTH2_PROXY_COOKIE_SECRET`
-- `OAUTH2_PROXY_ALLOWED_EMAILS`
+- `OAUTH2_PROXY_ALLOWED_EMAILS_FILE`
 - `OPENCLAW_GATEWAY_TOKEN`
 - при необходимости `OPENCLAW_IMAGE`
 
-3. Запустить базовый контур:
+3. Создать файл allowlist для Google-логина, по одному email на строку:
+
+```bash
+mkdir -p /srv/moreforms/runtime/secrets
+cat >/srv/moreforms/runtime/secrets/oauth2-allowed-emails.txt <<'EOF'
+you@example.com
+teammate@example.com
+EOF
+chmod 600 /srv/moreforms/runtime/secrets/oauth2-allowed-emails.txt
+```
+
+4. Запустить базовый контур:
 
 ```bash
 cd /srv/moreforms/deploy/repo/deploy
 docker compose --env-file /srv/moreforms/runtime/.env up -d --build
 ```
 
-4. Когда будет готов образ/способ установки OpenClaw, поднять и его:
+5. Когда будет готов образ/способ установки OpenClaw, поднять и его:
 
 ```bash
 cd /srv/moreforms/deploy/repo/deploy
