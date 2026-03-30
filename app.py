@@ -198,6 +198,74 @@ CHAT_KNOWLEDGE_BASE_FILES = [
     "artifacts/risk_register.md",
     "app.py",
 ]
+CHAT_MODE_CONFIG = {
+    "general": {
+        "label": "Общий",
+        "context": "Работай по всем tracker-файлам и артефактам проекта.",
+        "files": CHAT_KNOWLEDGE_BASE_FILES,
+    },
+    "competitors": {
+        "label": "Конкуренты",
+        "context": "Сфокусируйся на сохранении, сравнении и обогащении базы конкурентов.",
+        "files": [
+            "data/competitors.csv",
+            "artifacts/competitor_map.md",
+            "artifacts/one_pager.md",
+        ],
+    },
+    "signals": {
+        "label": "Сигналы внедрений",
+        "context": "Сфокусируйся на сигналах внедрений, customer stories и deployment mentions.",
+        "files": [
+            "data/adoption_mentions.csv",
+            "artifacts/competitor_map.md",
+        ],
+    },
+    "contacts": {
+        "label": "Контакты и интервью",
+        "context": "Сфокусируйся на контактах, интервью и проблемах бизнеса.",
+        "files": [
+            "data/contacts.csv",
+            "data/interviews.csv",
+            "artifacts/roles_and_scenarios.md",
+            "artifacts/jtbd.md",
+        ],
+    },
+    "artifacts": {
+        "label": "Артефакты",
+        "context": "Сфокусируйся на продуктовых артефактах и изменениях thesis.",
+        "files": [
+            "artifacts.md",
+            "data/artifacts.csv",
+            "artifacts/one_pager.md",
+            "artifacts/roles_and_scenarios.md",
+            "artifacts/jtbd.md",
+            "artifacts/user_journey.md",
+            "artifacts/prd_mvp.md",
+            "artifacts/metrics_and_hypotheses.md",
+            "artifacts/risk_register.md",
+        ],
+    },
+    "backlog": {
+        "label": "Бэклог",
+        "context": "Сфокусируйся на backlog, требованиях и следующем action plan.",
+        "files": [
+            "data/backlog.csv",
+            "data/artifacts.csv",
+            "artifacts/prd_mvp.md",
+        ],
+    },
+    "dashboard": {
+        "label": "Дашборды",
+        "context": "Сфокусируйся на создании lightweight dashboards и доработке Streamlit UI.",
+        "files": [
+            "app.py",
+            "generated_dashboards/",
+            "openclaw_agent.md",
+            "openclaw_streamlit.md",
+        ],
+    },
+}
 
 
 def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
@@ -707,6 +775,54 @@ def show_backlog_tab() -> None:
     )
 
 
+def show_space_tab() -> None:
+    tab_competitors, tab_adoption, tab_contacts, tab_artifacts, tab_interviews, tab_backlog, tab_generated = st.tabs(
+        [
+            "Конкуренты",
+            "Сигналы внедрений",
+            "Контакты",
+            "Артефакты",
+            "Интервью",
+            "Бэклог и требования",
+            "Созданные дашборды",
+        ]
+    )
+
+    with tab_competitors:
+        df = load_data()
+        filtered = apply_filters(df)
+
+        show_metrics(filtered)
+        st.download_button(
+            "Скачать CSV",
+            data=DATA_PATH.read_bytes(),
+            file_name="competitors.csv",
+            mime="text/csv",
+        )
+        st.divider()
+        show_tabbed_views(filtered)
+
+    with tab_adoption:
+        show_adoption_tab()
+
+    with tab_contacts:
+        show_contacts_tab()
+
+    with tab_artifacts:
+        show_artifacts_tab()
+
+    with tab_interviews:
+        show_interviews_tab()
+
+    with tab_backlog:
+        show_backlog_tab()
+
+    with tab_generated:
+        st.subheader("Созданные дашборды")
+        st.caption("Здесь собраны lightweight dashboards, созданные через OpenClaw.")
+        render_generated_dashboard_table()
+
+
 def multiselect_main_filter(label: str, series: pd.Series, key: str) -> list[str]:
     options = sorted([value for value in series.dropna().unique().tolist() if value])
     return st.multiselect(label, options, key=key, placeholder="Выберите варианты")
@@ -1094,14 +1210,16 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
     return extract_openclaw_text(response.json())
 
 
-def run_chat_turn(raw_prompt: str) -> str:
+def run_chat_turn(raw_prompt: str, mode_key: str) -> str:
     user_key = get_authenticated_user_key()
-    return ask_openclaw(raw_prompt, user_key)
+    mode_prompt = build_chat_prompt(raw_prompt, mode_key)
+    return ask_openclaw(mode_prompt, user_key)
 
 
-def build_chat_prompt(user_prompt: str) -> str:
+def build_chat_prompt(user_prompt: str, mode_key: str) -> str:
     agent_profile = load_openclaw_agent_profile()
-    files = "\n".join(f"- {path}" for path in CHAT_KNOWLEDGE_BASE_FILES)
+    mode_config = CHAT_MODE_CONFIG.get(mode_key, CHAT_MODE_CONFIG["general"])
+    files = "\n".join(f"- {path}" for path in mode_config["files"])
     dashboard_rules = (
         "Правила работы в Streamlit:\n"
         f"- lightweight dashboards создаются в `{GENERATED_DASHBOARDS_DIR.name}/<slug>.md`\n"
@@ -1111,6 +1229,8 @@ def build_chat_prompt(user_prompt: str) -> str:
 
     if not agent_profile:
         return (
+            f"Текущий режим чата: {mode_config['label']}.\n"
+            f"{mode_config['context']}\n\n"
             "Опирайся на эти файлы проекта:\n"
             f"{files}\n\n{dashboard_rules}\nНовый запрос:\n{user_prompt}"
         )
@@ -1119,6 +1239,8 @@ def build_chat_prompt(user_prompt: str) -> str:
         "Ниже дан твой постоянный профиль агента и затем новый запрос пользователя.\n\n"
         "=== ПРОФИЛЬ АГЕНТА ===\n"
         f"{agent_profile}\n\n"
+        "=== ТЕКУЩИЙ РЕЖИМ ЧАТА ===\n"
+        f"{mode_config['label']}: {mode_config['context']}\n\n"
         "=== КЛЮЧЕВЫЕ ФАЙЛЫ ===\n"
         f"{files}\n\n"
         "=== ПРАВИЛА DASHBOARD-РАБОТЫ ===\n"
@@ -1128,22 +1250,25 @@ def build_chat_prompt(user_prompt: str) -> str:
     )
 
 
-def get_chat_messages() -> list[dict[str, str]]:
+def get_chat_messages(mode_key: str) -> list[dict[str, str]]:
+    mode_label = CHAT_MODE_CONFIG[mode_key]["label"]
     default_message = {
         "role": "assistant",
         "content": (
+            f"Режим `{mode_label}`.\n\n"
             "Этот чат работает как рабочий интерфейс OpenClaw.\n\n"
             "Через него можно обновлять конкурентов, сигналы внедрений, контакты, интервью, "
             "бэклог, артефакты и создавать новые lightweight dashboards."
         ),
     }
-    if "chat_messages" not in st.session_state:
-        st.session_state["chat_messages"] = [default_message]
-    return st.session_state["chat_messages"]
+    history_key = f"chat_messages_{mode_key}"
+    if history_key not in st.session_state:
+        st.session_state[history_key] = [default_message]
+    return st.session_state[history_key]
 
 
-def set_chat_messages(messages: list[dict[str, str]]) -> None:
-    st.session_state["chat_messages"] = messages
+def set_chat_messages(mode_key: str, messages: list[dict[str, str]]) -> None:
+    st.session_state[f"chat_messages_{mode_key}"] = messages
 
 
 def render_top_navigation(view: str) -> None:
@@ -1207,20 +1332,26 @@ def show_generated_dashboard_page(slug: str) -> None:
     st.markdown(dashboard["content"])
 
 
-def show_chat_tab() -> None:
+def show_chat_tab(standalone: bool = False) -> None:
     st.subheader("Чат-бот")
-    st.caption(
-        "Чат с OpenClaw для обновления trackers, артефактов и создания новых lightweight dashboards."
+    if standalone:
+        render_top_navigation("chat")
+    mode_key = st.selectbox(
+        "Режим",
+        list(CHAT_MODE_CONFIG.keys()),
+        format_func=lambda value: CHAT_MODE_CONFIG[value]["label"],
+        key="chat_mode_select",
     )
-    render_top_navigation("chat")
-    messages = get_chat_messages()
+    messages = get_chat_messages(mode_key)
 
-    st.markdown("### Созданные дашборды")
-    render_generated_dashboard_table(limit=12)
-
-    if st.button("Очистить диалог", key="clear_chat_history"):
-        set_chat_messages(messages[:1])
-        st.rerun()
+    with st.expander("Статус backend", expanded=not openclaw_is_configured()):
+        st.markdown(f"**OpenClaw endpoint:** `{OPENCLAW_RESPONSES_URL or 'не задан'}`")
+        st.markdown(f"**Agent ID:** `{OPENCLAW_AGENT_ID}`")
+        st.markdown(f"**Пользователь:** `{get_authenticated_user_key()}`")
+        if openclaw_is_configured():
+            st.success("Backend подключен.")
+        else:
+            st.warning("Backend пока не подключен.")
 
     for message in messages:
         with st.chat_message(message["role"]):
@@ -1231,7 +1362,7 @@ def show_chat_tab() -> None:
         return
 
     messages.append({"role": "user", "content": prompt})
-    set_chat_messages(messages)
+    set_chat_messages(mode_key, messages)
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -1243,7 +1374,7 @@ def show_chat_tab() -> None:
             st.markdown(reply)
         else:
             try:
-                reply = run_chat_turn(prompt)
+                reply = run_chat_turn(prompt, mode_key)
                 st.markdown(reply)
             except requests.HTTPError as exc:
                 response_text = exc.response.text[:500] if exc.response is not None else ""
@@ -1254,7 +1385,7 @@ def show_chat_tab() -> None:
                 st.error(reply)
 
     messages.append({"role": "assistant", "content": reply})
-    set_chat_messages(messages)
+    set_chat_messages(mode_key, messages)
 
 
 def main() -> None:
@@ -1268,48 +1399,21 @@ def main() -> None:
 
     if view == "chat":
         st.title("Moreforms: чат")
-        st.caption("Отдельный чат-дашборд: только OpenClaw и ссылки на созданные дашборды.")
-        show_chat_tab()
+        st.caption("Отдельный чат-дашборд.")
+        show_chat_tab(standalone=True)
         return
 
     st.title("Moreforms: shared workspace")
     st.caption(
-        "Основной dashboard для ведения конкурентов, сигналов внедрений, контактов, интервью, артефактов и backlog требований."
+        "Основной dashboard для работы с чатом и пространством discovery."
     )
-    render_top_navigation("main")
+    tab_chat, tab_space = st.tabs(["Чат", "Пространство"])
 
-    tab_competitors, tab_adoption, tab_contacts, tab_artifacts, tab_interviews, tab_backlog = st.tabs(
-        ["Конкуренты", "Сигналы внедрений", "Контакты", "Артефакты", "Интервью", "Бэклог и требования"]
-    )
+    with tab_chat:
+        show_chat_tab(standalone=False)
 
-    with tab_competitors:
-        df = load_data()
-        filtered = apply_filters(df)
-
-        show_metrics(filtered)
-        st.download_button(
-            "Скачать CSV",
-            data=DATA_PATH.read_bytes(),
-            file_name="competitors.csv",
-            mime="text/csv",
-        )
-        st.divider()
-        show_tabbed_views(filtered)
-
-    with tab_adoption:
-        show_adoption_tab()
-
-    with tab_contacts:
-        show_contacts_tab()
-
-    with tab_artifacts:
-        show_artifacts_tab()
-
-    with tab_interviews:
-        show_interviews_tab()
-
-    with tab_backlog:
-        show_backlog_tab()
+    with tab_space:
+        show_space_tab()
 
 
 if __name__ == "__main__":
