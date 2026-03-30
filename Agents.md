@@ -2,32 +2,145 @@
 
 ## Роль помощника
 
-Ты работаешь в проекте `moreforms` как AI-first помощник для совместного venture discovery.
+Ты работаешь в проекте `moreforms` как AI-first помощник для команды, которая ведет discovery будущего `AI-native B2B SaaS`.
 
-Твои роли:
+`shared workspace` в этом репозитории — внутренний продукт команды.
 
-- продуктовый стратег;
-- фасилитатор customer discovery;
-- исследователь рынка и конкурентов;
-- куратор evidence base;
-- редактор wiki и продуктовых артефактов;
-- технический помощник по Streamlit, OpenClaw и generated dashboards.
+Он нужен не как конечный SaaS для клиентов, а как operational dashboard для:
 
-Это рабочее пространство для нескольких людей, которые исследуют идеи стартапа для малого и среднего бизнеса, собирают материалы и принимают решения по следующим шагам.
+- фиксации конкурентов;
+- фиксации сигналов внедрений;
+- фиксации контактов и проблем бизнеса;
+- фиксации проведенных интервью;
+- ведения backlog и требований;
+- просмотра и обновления продуктовых артефактов;
+- создания lightweight dashboards через OpenClaw.
+
+## Основные сценарии
+
+### 1. Конкуренты
+
+Файл:
+
+`/Users/morenekitov/Documents/moreforms/data/competitors.csv`
+
+Если пользователь:
+
+- кидает ссылку на продукт;
+- кидает ссылку на funding;
+- описывает компанию;
+- просит обогатить базу по теме, pain area, источнику или категории;
+
+то твоя задача:
+
+- добавить или обновить запись в `competitors.csv`;
+- сохранить все релевантные ссылки;
+- кратко зафиксировать, почему игрок важен;
+- при необходимости обновить связанные артефакты.
+
+### 2. Сигналы внедрений
+
+Файл:
+
+`/Users/morenekitov/Documents/moreforms/data/adoption_mentions.csv`
+
+Если пользователь просит собрать или дополнить сигналы:
+
+- внедрения;
+- customer stories;
+- публичные deployment mentions;
+- новости о том, как похожие решения реально используются;
+
+то:
+
+- добавляй или обновляй записи в `adoption_mentions.csv`;
+- сохраняй ссылку на источник;
+- фиксируй, почему сигнал важен.
+
+### 3. Контакты
+
+Файл:
+
+`/Users/morenekitov/Documents/moreforms/data/contacts.csv`
+
+Если пользователь кидает:
+
+- имя контакта;
+- компанию;
+- роль;
+- проблему бизнеса;
+- контекст знакомства;
+
+то:
+
+- сохраняй это в `contacts.csv`;
+- обязательно фиксируй `business_problem`;
+- обновляй `next_step`, если он понятен.
+
+### 4. Проведенные интервью
+
+Файл:
+
+`/Users/morenekitov/Documents/moreforms/data/interviews.csv`
+
+Если пользователь делится результатом интервью:
+
+- добавляй запись в `interviews.csv`;
+- фиксируй дату, роль, problem area, summary, key findings и next step;
+- если вывод влияет на product thesis, обновляй артефакты.
+
+### 5. Бэклог и требования
+
+Файл:
+
+`/Users/morenekitov/Documents/moreforms/data/backlog.csv`
+
+Если пользователь формулирует:
+
+- гипотезу;
+- требование;
+- запрос на доработку;
+- идею для исследования;
+- внутреннюю задачу;
+
+то:
+
+- сохраняй это в `backlog.csv`;
+- указывай тип, статус, приоритет и следующий шаг, если он понятен.
+
+### 6. Артефакты
+
+Файлы:
+
+- `/Users/morenekitov/Documents/moreforms/artifacts.md`
+- `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
+- `/Users/morenekitov/Documents/moreforms/artifacts/*.md`
+
+Артефакты описывают формирование внешней продуктовой идеи.
+
+Сейчас основной product focus:
+
+1. управленческая отчетность;
+2. составление и согласование КП;
+3. обработка и интерпретация сложных Excel.
+
+Если меняется thesis, pain framing, wedge, ICP, learning или выводы интервью:
+
+- обновляй `artifacts.md`;
+- обновляй `data/artifacts.csv`;
+- обновляй затронутые markdown-артефакты.
 
 ## Источники правды
 
-В первую очередь опирайся на файлы проекта:
+В первую очередь опирайся на:
 
-- `/Users/morenekitov/Documents/moreforms/workspace_structure.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts.md`
-- `/Users/morenekitov/Documents/moreforms/data/ideas.csv`
-- `/Users/morenekitov/Documents/moreforms/data/tasks.csv`
-- `/Users/morenekitov/Documents/moreforms/data/contacts.csv`
-- `/Users/morenekitov/Documents/moreforms/data/research_library.csv`
 - `/Users/morenekitov/Documents/moreforms/data/competitors.csv`
 - `/Users/morenekitov/Documents/moreforms/data/adoption_mentions.csv`
+- `/Users/morenekitov/Documents/moreforms/data/contacts.csv`
+- `/Users/morenekitov/Documents/moreforms/data/interviews.csv`
+- `/Users/morenekitov/Documents/moreforms/data/backlog.csv`
 - `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
+- `/Users/morenekitov/Documents/moreforms/artifacts.md`
 - `/Users/morenekitov/Documents/moreforms/artifacts/one_pager.md`
 - `/Users/morenekitov/Documents/moreforms/artifacts/roles_and_scenarios.md`
 - `/Users/morenekitov/Documents/moreforms/artifacts/jtbd.md`
@@ -36,249 +149,29 @@
 - `/Users/morenekitov/Documents/moreforms/artifacts/prd_mvp.md`
 - `/Users/morenekitov/Documents/moreforms/artifacts/metrics_and_hypotheses.md`
 - `/Users/morenekitov/Documents/moreforms/artifacts/risk_register.md`
-
-Reference-репозиторий с паттернами AI-first workspace:
-
-- `/Users/morenekitov/Documents/moreforms/references/ai-first-workspace-template`
-- `/Users/morenekitov/Documents/moreforms/workspace_template_guide.md`
-
-Runtime-профиль OpenClaw:
-
+- `/Users/morenekitov/Documents/moreforms/app.py`
 - `/Users/morenekitov/Documents/moreforms/openclaw_agent.md`
 - `/Users/morenekitov/Documents/moreforms/openclaw_streamlit.md`
 
-## Операционная задача этого репозитория
+## Правила работы
 
-Этот репозиторий нужен, чтобы команда вела в одном месте:
-
-- список идей и venture thesis;
-- backlog гипотез;
-- конкурентную карту;
-- исследовательские материалы, статьи, видео и новости;
-- контакты и pipeline интервью;
-- прототипы и generated dashboards;
-- продуктовые артефакты;
-- задачи и next steps.
-
-Главная цель системы: не терять контекст между участниками команды и между итерациями discovery.
-
-Важно:
-
-- `shared workspace` = внутренний продукт команды;
-- целевая `ai-native B2B SaaS` = внешний продукт, идею которого мы сейчас формируем.
-
-Артефакты в `artifacts/*.md` и `data/artifacts.csv` должны описывать именно процесс формирования **внешней продуктовой идеи**, а не устройство внутреннего workspace.
-
-## Главный режим работы
-
-Когда пользователь просит что-то исследовать, обновить или структурировать:
-
-1. Определи, к какому контуру относится задача:
-- `workspace` — идеи, backlog, контакты, материалы, задачи;
-- `рынок` — конкуренты, сигналы, ICP, категории;
-- `артефакты` — one-pager, JTBD, PRD, метрики, риски;
-- `разработка` — дашборды, чат, deploy, generated dashboards.
-2. Обнови соответствующие файлы, а не ограничивайся ответом в чате.
-3. Если появляется новый market signal, конкурент, контакт, исследовательский материал или backlog item, добавь его в соответствующий tracker.
-4. Если информации не хватает, явно укажи, какой файл или какой контур нужно дополнить.
+1. Если появляется новая сущность, добавляй ее в соответствующий tracker, а не только отвечай в чате.
+2. Если пользователь просит enrichment, обогащай существующую таблицу, а не создавай дубли.
+3. Если вывод влияет на продуктовую thesis, обновляй артефакты.
+4. Если пользователь просит новый lightweight dashboard, создавай файл в `generated_dashboards/<slug>.md` и возвращай ссылку вида:
+   `https://app.moreforms.ru?dashboard=<slug>`
+5. Если нужен runtime change в интерфейсе, меняй `app.py`.
 
 ## Git-правило
 
-После любого изменения файлов в этом проекте:
-
-1. Обнови соответствующие артефакты и трекеры.
-2. Сделай git commit с коротким понятным сообщением.
-3. Сразу сделай git push в `main`, если пользователь явно не попросил иное.
-
-Не оставляй изменения только локально.
-
-## Shared trackers
-
-### Идеи
-
-Файл:
-
-`/Users/morenekitov/Documents/moreforms/data/ideas.csv`
-
-Используй для:
-
-- venture thesis;
-- новых продуктовых направлений;
-- решений по фокусу;
-- owner и next step по каждой идее.
-
-### Задачи
-
-Файл:
-
-`/Users/morenekitov/Documents/moreforms/data/tasks.csv`
-
-Используй для:
-
-- next actions;
-- product and research backlog;
-- распределения ответственности;
-- контроля follow-up после интервью, исследования или прототипа.
-
-### Контакты
-
-Файл:
-
-`/Users/morenekitov/Documents/moreforms/data/contacts.csv`
-
-Используй для:
-
-- потенциальных клиентов;
-- экспертных интервью;
-- партнеров;
-- советников;
-- warm intros и follow-up.
-
-### Исследовательская библиотека
-
-Файл:
-
-`/Users/morenekitov/Documents/moreforms/data/research_library.csv`
-
-Используй для:
-
-- статей;
-- видео;
-- постов;
-- customer stories;
-- industry reports;
-- заметок по интервью и медиа-сигналам.
-
-## Продуктовые артефакты
-
-Основной документ:
-
-`/Users/morenekitov/Documents/moreforms/artifacts.md`
-
-Структурированная таблица:
-
-`/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
-
-Когда меняется venture thesis, ICP, wedge, MVP, discovery plan или рабочий контур:
-
-1. обнови `artifacts.md`;
-2. обнови `data/artifacts.csv`;
-3. обнови затронутые артефакты;
-4. если нужно, обнови идеи, задачи, контакты и research library;
-5. закоммить и запушь изменения.
-
-Текущий problem space, который нужно держать в фокусе:
-
-1. управленческая отчетность;
-2. составление и согласование КП;
-3. обработка и интерпретация сложных Excel.
-
-## Конкуренты и сигналы
-
-### Конкуренты
-
-Файл:
-
-`/Users/morenekitov/Documents/moreforms/data/competitors.csv`
-
-Используй для прямых, смежных и сигнальных игроков.
-
-Типы:
-
-- `прямой`
-- `смежный`
-- `сигнал`
-
-Сохраняй минимум:
-
-- сайт;
-- funding или подтверждающий источник;
-- продуктовый источник;
-- все дополнительные ссылки;
-- краткий вывод, почему игрок важен для текущей thesis.
-
-Примечание:
-
-поле `rf_pilot_relevance` в текущей таблице остается legacy-техническим названием. Теперь используй его как поле `релевантность для текущей thesis и пилотов в SMB`.
-
-### Рыночные сигналы и внедрения
-
-Файл:
-
-`/Users/morenekitov/Documents/moreforms/data/adoption_mentions.csv`
-
-Используй его шире, чем только customer cases:
-
-- customer stories;
-- новости;
-- pilot signals;
-- deployment stories;
-- enterprise and SMB signals;
-- ecosystem references.
-
-## Формат совместной работы
-
-Базовая структура workspace:
-
-- `workspace_structure.md` — как устроена система и как ей пользоваться;
-- `ideas.csv` — что именно исследуем;
-- `tasks.csv` — что делаем дальше;
-- `contacts.csv` — с кем разговариваем;
-- `research_library.csv` — на чем основаны выводы;
-- `competitors.csv` — кто уже решает похожую задачу;
-- `artifacts/*.md` — в каких документах фиксируется текущая thesis.
-
-## Где искать стартапы и сигналы
-
-### Базы стартапов
-
-- Crunchbase
-- PitchBook
-- Dealroom
-
-Фильтры по умолчанию:
-
-- stage: `pre-seed`, `seed`, `series A`
-- category: `AI`, `analytics`, `data tools`, `workflow`, `vertical SaaS`, `operations`, `customer research`, `knowledge management`
-
-### Где искать тренды
-
-- Product Hunt
-- Y Combinator Companies
-- a16z blog
-- Sequoia ideas
-- G2
-- Capterra
-- Hacker News
-- Reddit
-- YouTube
-- LinkedIn founders / operators
-
-### Reddit и community-поиск
-
-- `r/startups`
-- `r/Entrepreneur`
-- `r/SaaS`
-- `r/smallbusiness`
-- `r/SideProject`
-
-Ищи по запросам:
-
-- `AI workflow`
-- `AI spreadsheet`
-- `customer discovery tools`
-- `team knowledge base`
-- `ops automation for SMB`
-- `market research AI`
-
-## Правила generated dashboards
-
-- lightweight dashboards создаются в `/Users/morenekitov/Documents/moreforms/generated_dashboards`
-- публичная ссылка возвращается в формате `https://app.moreforms.ru?dashboard=<slug>`
-- если нужен сложный runtime dashboard, меняй `app.py` и связанные deploy-файлы
+После любого изменения файлов в проекте:
+
+1. обнови нужные trackers и документы;
+2. сделай `git commit`;
+3. сразу сделай `git push` в `main`, если пользователь явно не попросил иное.
 
 ## Язык
 
-- предпочитай русский язык в пользовательских значениях и описаниях;
+- предпочитай русский язык;
 - английский оставляй для общеупотребимых терминов и имен собственных:
-  `AI`, `LLM`, `SQL`, `BI`, `workflow`, `pipeline`, `startup`, `venture thesis`, `product-market fit`.
+  `AI`, `LLM`, `SQL`, `BI`, `workflow`, `startup`, `PMF`.

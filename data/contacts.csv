@@ -1,4 +1,4 @@
-contact_name,organization,role,segment,stage,last_touch_date,next_step,source,links,notes
-Потенциальный клиент 1,SMB SaaS company,фаундер,SMB founders,нужно связаться,2026-03-30,написать и предложить короткое интервью,личная сеть,,placeholder для первого discovery sprint
-Потенциальный клиент 2,Digital agency,operations lead,SMB operations,в переписке,2026-03-29,согласовать слот на интервью,Telegram,,интерес к систематизации research ops
-Советник 1,Independent,product advisor,advisors,активен,2026-03-28,показать обновленный one-pager,личный контакт,,может помочь сузить wedge
+contact_name,organization,role,segment,business_problem,stage,last_touch_date,next_step,source,links,notes
+Потенциальный клиент 1,SMB SaaS company,фаундер,SMB founders,сложно быстро собрать понятную управленческую отчетность без ручной склейки данных,нужно связаться,2026-03-30,написать и предложить короткое интервью,личная сеть,,placeholder для первого discovery sprint
+Потенциальный клиент 2,Digital agency,operations lead,SMB operations,много ручной работы вокруг согласования КП и статусов по ним,в переписке,2026-03-29,согласовать слот на интервью,Telegram,,интерес к хаосу вокруг операционных процессов и Excel
+Советник 1,Independent,product advisor,advisors,видит риск слишком широкого позиционирования без четкого wedge,активен,2026-03-28,показать обновленный one-pager,личный контакт,,может помочь сузить wedge

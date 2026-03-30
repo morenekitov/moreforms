@@ -2,150 +2,59 @@
 
 ## Назначение
 
-`moreforms` используется как shared venture discovery workspace для команды, которая исследует startup ideas для SMB.
+`moreforms` — это внутренний shared workspace команды.
 
-Важно:
+Он нужен для поиска `PMF` будущего `AI-native B2B SaaS`, а не как конечный внешний продукт.
 
-- `shared workspace` — это внутренний продукт команды;
-- конечная цель — не продавать сам workspace, а найти product-market fit для внешнего AI-native B2B SaaS;
-- текущий discovery идет вокруг трех pain areas:
-  - управленческая отчетность;
-  - составление и согласование КП;
-  - обработка и интерпретация сложных Excel.
+## Что видно на основном dashboard
 
-Это рабочая система, а не просто витрина.
+В основном dashboard есть только базовые рабочие сценарии:
 
-В ней команда:
+1. `Конкуренты`
+2. `Сигналы внедрений`
+3. `Контакты`
+4. `Артефакты`
+5. `Интервью`
+6. `Бэклог и требования`
 
-- фиксирует идеи;
-- ведет backlog гипотез и задач;
-- хранит контакты и interview pipeline;
-- собирает статьи, видео, market signals и новости;
-- ведет конкурентную карту;
-- поддерживает discovery-артефакты;
-- создает lightweight dashboards под отдельные вопросы.
+## Что видно в chat dashboard
 
-Артефакты в `artifacts/*.md` описывают не сам workspace, а путь к формированию конечного внешнего продукта.
+В chat dashboard есть только:
 
-## Базовая структура совместной работы
+- чат с OpenClaw;
+- таблица со ссылками на созданные lightweight dashboards.
 
-### 1. Workspace
+## Основные tracker-файлы
 
-Файлы:
-
-- `data/ideas.csv`
-- `data/tasks.csv`
-- `data/contacts.csv`
-- `data/research_library.csv`
-
-Назначение:
-
-- идеи;
-- next actions;
-- люди и интервью;
-- материалы и evidence.
-
-### 2. Strategy
-
-Файлы:
-
-- `artifacts/one_pager.md`
-- `artifacts/competitor_map.md`
 - `data/competitors.csv`
 - `data/adoption_mentions.csv`
+- `data/contacts.csv`
+- `data/interviews.csv`
+- `data/backlog.csv`
+- `data/artifacts.csv`
 
-Назначение:
+## Основные документы
 
-- сформулировать venture thesis;
-- понять рынок;
-- увидеть landscape;
-- выбрать правильный wedge.
-
-На текущем этапе здесь нужно удерживать три competing directions:
-
-- reporting;
-- КП workflow;
-- Excel intelligence.
-
-### 3. Product
-
-Файлы:
-
-- `artifacts/roles_and_scenarios.md`
-- `artifacts/jtbd.md`
-- `artifacts/user_journey.md`
-- `artifacts/prd_mvp.md`
-- `artifacts/metrics_and_hypotheses.md`
-- `artifacts/risk_register.md`
-
-Назначение:
-
-- превращать thesis в продуктовую гипотезу;
-- не терять логику решений;
-- иметь базу для прототипов и MVP.
-
-### 4. App
-
-Файлы:
-
-- `app.py`
+- `artifacts.md`
+- `artifacts/*.md`
+- `Agents.md`
 - `openclaw_agent.md`
 - `openclaw_streamlit.md`
-- `deploy/*`
-- `generated_dashboards/*`
 
-Назначение:
+## Текущий product discovery focus
 
-- показать команде все ключевые контуры в одном интерфейсе;
-- дать chat dashboard для OpenClaw;
-- быстро создавать новые lightweight views.
+Сейчас команда исследует три pain areas:
 
-## Базовый ритм работы
+1. управленческая отчетность;
+2. составление и согласование КП;
+3. обработка и интерпретация сложных Excel.
 
-### Еженедельно
+## Generated dashboards
 
-- обновить `ideas.csv`
-- обновить `tasks.csv`
-- добавить новые материалы в `research_library.csv`
-- обновить статус гипотез и next steps
+Lightweight dashboards живут в:
 
-### После каждого интервью или сигнала
+- `generated_dashboards/<slug>.md`
 
-- добавить запись в `contacts.csv` или обновить существующую
-- положить заметку или материал в `research_library.csv`
-- если есть сильный сдвиг, обновить `one_pager`, `JTBD` или `competitor_map`
+Публичный формат ссылки:
 
-### После каждого значимого продуктового решения
-
-- обновить соответствующий артефакт
-- зафиксировать задачу в `tasks.csv`
-- если решение требует нового представления, создать generated dashboard
-
-### На текущем этапе discovery
-
-- не пытаться зафиксировать финальный product scope слишком рано;
-- докручивать артефакты по мере интервью и брейншторминга;
-- явно различать:
-  - внутренний operating layer команды;
-  - внешний продукт, который ищет PMF.
-
-## Что должно быть видно в dashboard
-
-В основной dashboard должны быть доступны:
-
-- workspace overview;
-- идеи;
-- задачи;
-- контакты;
-- материалы;
-- конкуренты;
-- рыночные сигналы;
-- артефакты;
-- generated dashboards.
-
-В chat dashboard должно быть удобно:
-
-- задавать вопросы по knowledge base;
-- просить обновить trackers;
-- просить изменить UI;
-- просить создать новый generated dashboard и вернуть ссылку.
+- `https://app.moreforms.ru?dashboard=<slug>`

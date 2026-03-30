@@ -7,21 +7,18 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="Moreforms: discovery workspace",
+    page_title="Moreforms: shared workspace",
     page_icon="📊",
     layout="wide",
 )
 
-WORKSPACE_STRUCTURE_PATH = Path(__file__).parent / "workspace_structure.md"
 DATA_PATH = Path(__file__).parent / "data" / "competitors.csv"
 ADOPTION_PATH = Path(__file__).parent / "data" / "adoption_mentions.csv"
 ARTIFACTS_PATH = Path(__file__).parent / "data" / "artifacts.csv"
-IDEAS_PATH = Path(__file__).parent / "data" / "ideas.csv"
-TASKS_PATH = Path(__file__).parent / "data" / "tasks.csv"
 CONTACTS_PATH = Path(__file__).parent / "data" / "contacts.csv"
-RESEARCH_LIBRARY_PATH = Path(__file__).parent / "data" / "research_library.csv"
+INTERVIEWS_PATH = Path(__file__).parent / "data" / "interviews.csv"
+BACKLOG_PATH = Path(__file__).parent / "data" / "backlog.csv"
 OPENCLAW_AGENT_PROFILE_PATH = Path(__file__).parent / "openclaw_agent.md"
-OPENCLAW_STREAMLIT_GUIDE_PATH = Path(__file__).parent / "openclaw_streamlit.md"
 GENERATED_DASHBOARDS_DIR = Path(__file__).parent / "generated_dashboards"
 OPENCLAW_RESPONSES_URL = os.getenv("OPENCLAW_RESPONSES_URL", "").strip()
 OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "").strip()
@@ -98,35 +95,12 @@ ARTIFACTS_DEFAULT_COLUMNS = {
     "validation_method": "",
     "next_step": "",
 }
-IDEAS_DEFAULT_COLUMNS = {
-    "idea_name": "",
-    "theme": "",
-    "segment": "",
-    "status": "",
-    "priority": "",
-    "thesis": "",
-    "evidence": "",
-    "next_step": "",
-    "owner": "",
-    "links": "",
-    "notes": "",
-}
-TASKS_DEFAULT_COLUMNS = {
-    "task_name": "",
-    "workstream": "",
-    "priority": "",
-    "status": "",
-    "owner": "",
-    "due_date": "",
-    "related_artifact": "",
-    "outcome": "",
-    "notes": "",
-}
 CONTACTS_DEFAULT_COLUMNS = {
     "contact_name": "",
     "organization": "",
     "role": "",
     "segment": "",
+    "business_problem": "",
     "stage": "",
     "last_touch_date": "",
     "next_step": "",
@@ -134,17 +108,30 @@ CONTACTS_DEFAULT_COLUMNS = {
     "links": "",
     "notes": "",
 }
-RESEARCH_LIBRARY_DEFAULT_COLUMNS = {
-    "title": "",
-    "item_type": "",
-    "theme": "",
-    "geography": "",
-    "source_name": "",
-    "source_url": "",
+INTERVIEWS_DEFAULT_COLUMNS = {
+    "interview_date": "",
+    "contact_name": "",
+    "organization": "",
+    "role": "",
+    "problem_area": "",
     "summary": "",
-    "why_it_matters": "",
-    "related_idea": "",
-    "tags": "",
+    "key_findings": "",
+    "next_step": "",
+    "source_url": "",
+    "notes": "",
+}
+BACKLOG_DEFAULT_COLUMNS = {
+    "item_name": "",
+    "item_type": "",
+    "priority": "",
+    "status": "",
+    "owner": "",
+    "source": "",
+    "requirement": "",
+    "related_contact": "",
+    "related_artifact": "",
+    "next_step": "",
+    "notes": "",
 }
 LEGACY_VALUE_TRANSLATIONS = {
     "primary_client": {
@@ -192,104 +179,25 @@ CAPABILITY_LABELS = {
     "has_excel_csv_analysis": "Есть анализ Excel или CSV",
     "has_exports_reporting": "Есть экспорт и отчетность",
 }
-CHAT_MODE_CONFIG = {
-    "strategy": {
-        "label": "Стратегия",
-        "description": "Venture thesis, wedge, ICP, JTBD и приоритеты discovery.",
-        "context": (
-            "Режим: стратегия. Сфокусируйся на venture thesis, выборе сегмента, wedge, "
-            "JTBD, user journey и ключевых learning loops."
-        ),
-        "files": [
-            "workspace_structure.md",
-            "artifacts/one_pager.md",
-            "artifacts/jtbd.md",
-            "artifacts/user_journey.md",
-            "artifacts/prd_mvp.md",
-            "artifacts/metrics_and_hypotheses.md",
-            "data/ideas.csv",
-        ],
-        "quick_prompts": [
-            "Сформулируй 3 главных риска текущей venture thesis.",
-            "Предложи приоритеты discovery на ближайшие 2 недели.",
-            "Сравни активные идеи и предложи, что держать в фокусе.",
-        ],
-    },
-    "market": {
-        "label": "Рынок",
-        "description": "Конкуренты, сигналы, category map, customer evidence.",
-        "context": (
-            "Режим: рынок. Сфокусируйся на конкурентной карте, category map, смежных "
-            "решениях, customer signals и важности для текущих startup ideas."
-        ),
-        "files": [
-            "data/competitors.csv",
-            "data/adoption_mentions.csv",
-            "data/research_library.csv",
-            "artifacts/competitor_map.md",
-        ],
-        "quick_prompts": [
-            "Собери shortlist из прямых и смежных игроков под текущую thesis.",
-            "Покажи, какие категории рынка недооценены.",
-            "Сравни 5 ближайших конкурентов и выдели gap в позиционировании.",
-        ],
-    },
-    "workspace": {
-        "label": "Workspace",
-        "description": "Идеи, backlog, контакты, research materials, wiki и next steps.",
-        "context": (
-            "Режим: workspace. Сфокусируйся на совместной работе команды: ideas backlog, "
-            "контакты, research materials, задачи, wiki и generated dashboards."
-        ),
-        "files": [
-            "workspace_structure.md",
-            "data/ideas.csv",
-            "data/tasks.csv",
-            "data/contacts.csv",
-            "data/research_library.csv",
-            "artifacts.md",
-        ],
-        "quick_prompts": [
-            "Покажи, что в workspace сейчас не хватает для нормального discovery.",
-            "Предложи, как почистить backlog идей и задач.",
-            "Собери план следующего discovery sprint по текущим материалам.",
-        ],
-    },
-    "development": {
-        "label": "Разработка",
-        "description": "Изменения в коде, UX табов, данные, инфраструктура и deploy.",
-        "context": (
-            "Режим: разработка. Сфокусируйся на коде, структуре workspace dashboard, "
-            "generated dashboards, chat dashboard и deploy-контуре."
-        ),
-        "files": [
-            "app.py",
-            "deploy/docker-compose.yml",
-            "deploy/README.md",
-            "Agents.md",
-            "openclaw_agent.md",
-            "openclaw_streamlit.md",
-        ],
-        "quick_prompts": [
-            "Предложи следующие 3 улучшения для workspace dashboard.",
-            "Разложи, что осталось доделать для OpenClaw production contour.",
-            "Покажи, какие файлы надо менять для следующего улучшения интерфейса.",
-        ],
-    },
-}
-
-WORKSPACE_DOC_OPTIONS = {
-    "Операционная модель workspace": "workspace_structure.md",
-    "Обзор артефактов": "artifacts.md",
-    "One-pager": "artifacts/one_pager.md",
-    "Роли и сценарии": "artifacts/roles_and_scenarios.md",
-    "JTBD": "artifacts/jtbd.md",
-    "User journey": "artifacts/user_journey.md",
-    "PRD MVP": "artifacts/prd_mvp.md",
-    "Метрики и гипотезы": "artifacts/metrics_and_hypotheses.md",
-    "Риск-регистр": "artifacts/risk_register.md",
-    "AI workspace template guide": "workspace_template_guide.md",
-}
+CHAT_KNOWLEDGE_BASE_FILES = [
+    "Agents.md",
+    "artifacts.md",
+    "data/competitors.csv",
+    "data/adoption_mentions.csv",
+    "data/contacts.csv",
+    "data/interviews.csv",
+    "data/backlog.csv",
+    "data/artifacts.csv",
+    "artifacts/one_pager.md",
+    "artifacts/roles_and_scenarios.md",
+    "artifacts/jtbd.md",
+    "artifacts/user_journey.md",
+    "artifacts/competitor_map.md",
+    "artifacts/prd_mvp.md",
+    "artifacts/metrics_and_hypotheses.md",
+    "artifacts/risk_register.md",
+    "app.py",
+]
 
 
 def ensure_schema(df: pd.DataFrame) -> pd.DataFrame:
@@ -344,36 +252,6 @@ def load_artifacts_data() -> pd.DataFrame:
     return df
 
 
-def ensure_ideas_schema(df: pd.DataFrame) -> pd.DataFrame:
-    normalized = df.copy()
-    for column, default_value in IDEAS_DEFAULT_COLUMNS.items():
-        if column not in normalized.columns:
-            normalized[column] = default_value
-    return normalized[list(IDEAS_DEFAULT_COLUMNS.keys())]
-
-
-@st.cache_data
-def load_ideas_data() -> pd.DataFrame:
-    df = pd.read_csv(IDEAS_PATH)
-    return ensure_ideas_schema(df)
-
-
-def ensure_tasks_schema(df: pd.DataFrame) -> pd.DataFrame:
-    normalized = df.copy()
-    for column, default_value in TASKS_DEFAULT_COLUMNS.items():
-        if column not in normalized.columns:
-            normalized[column] = default_value
-    return normalized[list(TASKS_DEFAULT_COLUMNS.keys())]
-
-
-@st.cache_data
-def load_tasks_data() -> pd.DataFrame:
-    df = pd.read_csv(TASKS_PATH)
-    df = ensure_tasks_schema(df)
-    df["due_date"] = pd.to_datetime(df["due_date"], errors="coerce")
-    return df
-
-
 def ensure_contacts_schema(df: pd.DataFrame) -> pd.DataFrame:
     normalized = df.copy()
     for column, default_value in CONTACTS_DEFAULT_COLUMNS.items():
@@ -390,18 +268,34 @@ def load_contacts_data() -> pd.DataFrame:
     return df
 
 
-def ensure_research_library_schema(df: pd.DataFrame) -> pd.DataFrame:
+def ensure_interviews_schema(df: pd.DataFrame) -> pd.DataFrame:
     normalized = df.copy()
-    for column, default_value in RESEARCH_LIBRARY_DEFAULT_COLUMNS.items():
+    for column, default_value in INTERVIEWS_DEFAULT_COLUMNS.items():
         if column not in normalized.columns:
             normalized[column] = default_value
-    return normalized[list(RESEARCH_LIBRARY_DEFAULT_COLUMNS.keys())]
+    return normalized[list(INTERVIEWS_DEFAULT_COLUMNS.keys())]
 
 
 @st.cache_data
-def load_research_library_data() -> pd.DataFrame:
-    df = pd.read_csv(RESEARCH_LIBRARY_PATH)
-    return ensure_research_library_schema(df)
+def load_interviews_data() -> pd.DataFrame:
+    df = pd.read_csv(INTERVIEWS_PATH)
+    df = ensure_interviews_schema(df)
+    df["interview_date"] = pd.to_datetime(df["interview_date"], errors="coerce")
+    return df
+
+
+def ensure_backlog_schema(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for column, default_value in BACKLOG_DEFAULT_COLUMNS.items():
+        if column not in normalized.columns:
+            normalized[column] = default_value
+    return normalized[list(BACKLOG_DEFAULT_COLUMNS.keys())]
+
+
+@st.cache_data
+def load_backlog_data() -> pd.DataFrame:
+    df = pd.read_csv(BACKLOG_PATH)
+    return ensure_backlog_schema(df)
 
 
 @st.cache_data
@@ -409,13 +303,6 @@ def load_openclaw_agent_profile() -> str:
     if not OPENCLAW_AGENT_PROFILE_PATH.exists():
         return ""
     return OPENCLAW_AGENT_PROFILE_PATH.read_text(encoding="utf-8").strip()
-
-
-@st.cache_data
-def load_openclaw_streamlit_guide() -> str:
-    if not OPENCLAW_STREAMLIT_GUIDE_PATH.exists():
-        return ""
-    return OPENCLAW_STREAMLIT_GUIDE_PATH.read_text(encoding="utf-8").strip()
 
 
 def dashboard_link(slug: str) -> str:
@@ -651,130 +538,37 @@ def show_tabbed_views(df: pd.DataFrame) -> None:
             show_company_cards(subset)
 
 
-def show_workspace_overview() -> None:
-    ideas = load_ideas_data()
-    tasks = load_tasks_data()
-    contacts = load_contacts_data()
-    materials = load_research_library_data()
-
-    active_ideas = int(ideas["status"].fillna("").isin(["в фокусе", "на исследовании"]).sum())
-    open_tasks = int(tasks["status"].fillna("").isin(["в работе", "запланировано", "backlog"]).sum())
-    active_contacts = int(contacts["stage"].fillna("").isin(["нужно связаться", "в переписке", "активен"]).sum())
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Идей", len(ideas))
-    col2.metric("В активном фокусе", active_ideas)
-    col3.metric("Открытых задач", open_tasks)
-    col4.metric("Контактов и сигналов", active_contacts + len(materials))
-
-
-def show_workspace_docs() -> None:
-    st.markdown("### Вики и документация")
-    selected_doc = st.selectbox(
-        "Документ",
-        list(WORKSPACE_DOC_OPTIONS.keys()),
-        key="workspace_doc_select",
+def show_contacts_tab() -> None:
+    st.subheader("Контакты")
+    st.caption(
+        "Сохраняй сюда контакты, у кого есть релевантная проблема бизнеса, контекст общения и следующий шаг."
     )
-    path_value = WORKSPACE_DOC_OPTIONS[selected_doc]
-    ok, content = read_artifact_content(path_value)
-    st.caption(f"Файл: `{path_value}`")
-    if ok:
-        st.markdown(content)
-    else:
-        st.warning(content)
-
-
-def show_ideas_section() -> None:
-    df = load_ideas_data()
-    col1, col2 = st.columns(2)
-    with col1:
-        statuses = multiselect_main_filter("Статус идеи", df["status"], "ideas_status")
-    with col2:
-        themes = multiselect_main_filter("Тема", df["theme"], "ideas_theme")
-
-    filtered = df.copy()
-    if statuses:
-        filtered = filtered[filtered["status"].isin(statuses)]
-    if themes:
-        filtered = filtered[filtered["theme"].isin(themes)]
-
-    st.dataframe(
-        filtered,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "idea_name": st.column_config.TextColumn("Идея", width="medium"),
-            "theme": st.column_config.TextColumn("Тема"),
-            "segment": st.column_config.TextColumn("Сегмент", width="medium"),
-            "status": st.column_config.TextColumn("Статус"),
-            "priority": st.column_config.TextColumn("Приоритет"),
-            "thesis": st.column_config.TextColumn("Thesis", width="large"),
-            "evidence": st.column_config.TextColumn("Evidence", width="large"),
-            "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
-            "owner": st.column_config.TextColumn("Owner"),
-            "links": st.column_config.TextColumn("Ссылки", width="large"),
-            "notes": st.column_config.TextColumn("Заметки", width="large"),
-        },
-    )
-
-    for row in filtered.to_dict(orient="records"):
-        with st.expander(f'{row["idea_name"]} • {row["status"]} • {row["priority"]}'):
-            st.markdown(f'**Сегмент:** {row["segment"]}')
-            st.markdown(f'**Thesis:** {row["thesis"]}')
-            st.markdown(f'**Evidence:** {row["evidence"]}')
-            st.markdown(f'**Следующий шаг:** {row["next_step"]}')
-            st.markdown(f'**Owner:** {row["owner"]}')
-            st.markdown(f'**Ссылки:** {row["links"] or "нет"}')
-            st.markdown(f'**Заметки:** {row["notes"] or "нет"}')
-
-
-def show_tasks_section() -> None:
-    df = load_tasks_data()
-    col1, col2 = st.columns(2)
-    with col1:
-        statuses = multiselect_main_filter("Статус задачи", df["status"], "tasks_status")
-    with col2:
-        owners = multiselect_main_filter("Owner", df["owner"], "tasks_owner")
-
-    filtered = df.copy()
-    if statuses:
-        filtered = filtered[filtered["status"].isin(statuses)]
-    if owners:
-        filtered = filtered[filtered["owner"].isin(owners)]
-
-    visible = filtered.copy()
-    visible["due_date"] = visible["due_date"].dt.strftime("%Y-%m-%d")
-    st.dataframe(
-        visible,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "task_name": st.column_config.TextColumn("Задача", width="large"),
-            "workstream": st.column_config.TextColumn("Поток"),
-            "priority": st.column_config.TextColumn("Приоритет"),
-            "status": st.column_config.TextColumn("Статус"),
-            "owner": st.column_config.TextColumn("Owner"),
-            "due_date": st.column_config.TextColumn("Срок"),
-            "related_artifact": st.column_config.TextColumn("Связанный файл", width="medium"),
-            "outcome": st.column_config.TextColumn("Ожидаемый результат", width="large"),
-            "notes": st.column_config.TextColumn("Заметки", width="large"),
-        },
-    )
-
-
-def show_contacts_section() -> None:
     df = load_contacts_data()
     col1, col2 = st.columns(2)
     with col1:
         stages = multiselect_main_filter("Стадия контакта", df["stage"], "contacts_stage")
     with col2:
         segments = multiselect_main_filter("Сегмент", df["segment"], "contacts_segment")
+    query = st.text_input("Поиск по контакту, организации или проблеме", key="contacts_query")
 
     filtered = df.copy()
     if stages:
         filtered = filtered[filtered["stage"].isin(stages)]
     if segments:
         filtered = filtered[filtered["segment"].isin(segments)]
+    if query:
+        haystack = (
+            filtered["contact_name"].fillna("")
+            + " "
+            + filtered["organization"].fillna("")
+            + " "
+            + filtered["role"].fillna("")
+            + " "
+            + filtered["business_problem"].fillna("")
+            + " "
+            + filtered["notes"].fillna("")
+        ).str.lower()
+        filtered = filtered[haystack.str.contains(query.lower(), na=False)]
 
     visible = filtered.copy()
     visible["last_touch_date"] = visible["last_touch_date"].dt.strftime("%Y-%m-%d")
@@ -787,6 +581,7 @@ def show_contacts_section() -> None:
             "organization": st.column_config.TextColumn("Организация", width="medium"),
             "role": st.column_config.TextColumn("Роль"),
             "segment": st.column_config.TextColumn("Сегмент"),
+            "business_problem": st.column_config.TextColumn("Проблема бизнеса", width="large"),
             "stage": st.column_config.TextColumn("Стадия"),
             "last_touch_date": st.column_config.TextColumn("Последний контакт"),
             "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
@@ -796,91 +591,120 @@ def show_contacts_section() -> None:
         },
     )
 
+    for row in filtered.to_dict(orient="records"):
+        with st.expander(f'{row["contact_name"]} • {row["organization"]} • {row["stage"]}'):
+            st.markdown(f'**Роль:** {row["role"]}')
+            st.markdown(f'**Сегмент:** {row["segment"]}')
+            st.markdown(f'**Проблема бизнеса:** {row["business_problem"] or "не заполнено"}')
+            st.markdown(f'**Следующий шаг:** {row["next_step"] or "не заполнено"}')
+            st.markdown(f'**Источник:** {row["source"] or "не заполнено"}')
+            st.markdown(f'**Ссылки:** {row["links"] or "нет"}')
+            st.markdown(f'**Заметки:** {row["notes"] or "нет"}')
 
-def show_research_library_section() -> None:
-    df = load_research_library_data()
+
+def show_interviews_tab() -> None:
+    st.subheader("Проведенные интервью")
+    st.caption("Здесь хранится журнал уже проведенных интервью и ключевых выводов.")
+    df = load_interviews_data()
+    if df.empty:
+        st.info("Пока интервью не добавлены. После каждого интервью сохраняй сюда выводы и следующий шаг.")
+        return
+
     col1, col2 = st.columns(2)
     with col1:
-        item_types = multiselect_main_filter("Тип материала", df["item_type"], "research_item_type")
+        problem_areas = multiselect_main_filter("Problem area", df["problem_area"], "interviews_problem_area")
     with col2:
-        themes = multiselect_main_filter("Тема", df["theme"], "research_theme")
-    query = st.text_input("Поиск по материалам", key="research_query")
+        roles = multiselect_main_filter("Роль", df["role"], "interviews_role")
+    query = st.text_input("Поиск по интервью", key="interviews_query")
 
     filtered = df.copy()
-    if item_types:
-        filtered = filtered[filtered["item_type"].isin(item_types)]
-    if themes:
-        filtered = filtered[filtered["theme"].isin(themes)]
+    if problem_areas:
+        filtered = filtered[filtered["problem_area"].isin(problem_areas)]
+    if roles:
+        filtered = filtered[filtered["role"].isin(roles)]
     if query:
         haystack = (
-            filtered["title"].fillna("")
+            filtered["contact_name"].fillna("")
             + " "
             + filtered["summary"].fillna("")
             + " "
-            + filtered["why_it_matters"].fillna("")
+            + filtered["key_findings"].fillna("")
             + " "
-            + filtered["tags"].fillna("")
+            + filtered["notes"].fillna("")
         ).str.lower()
         filtered = filtered[haystack.str.contains(query.lower(), na=False)]
+
+    visible = filtered.copy()
+    visible["interview_date"] = visible["interview_date"].dt.strftime("%Y-%m-%d")
+    st.dataframe(
+        visible,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "interview_date": st.column_config.TextColumn("Дата"),
+            "contact_name": st.column_config.TextColumn("Контакт", width="medium"),
+            "organization": st.column_config.TextColumn("Организация", width="medium"),
+            "role": st.column_config.TextColumn("Роль"),
+            "problem_area": st.column_config.TextColumn("Problem area", width="medium"),
+            "summary": st.column_config.TextColumn("Краткое summary", width="large"),
+            "key_findings": st.column_config.TextColumn("Ключевые выводы", width="large"),
+            "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
+            "source_url": st.column_config.LinkColumn("Ссылка"),
+            "notes": st.column_config.TextColumn("Заметки", width="large"),
+        },
+    )
+
+    for row in filtered.to_dict(orient="records"):
+        title_date = row["interview_date"].strftime("%Y-%m-%d") if pd.notna(row["interview_date"]) else "без даты"
+        with st.expander(f'{title_date} • {row["contact_name"]} • {row["problem_area"]}'):
+            st.markdown(f'**Организация:** {row["organization"]}')
+            st.markdown(f'**Роль:** {row["role"]}')
+            st.markdown(f'**Summary:** {row["summary"] or "не заполнено"}')
+            st.markdown(f'**Ключевые выводы:** {row["key_findings"] or "не заполнено"}')
+            st.markdown(f'**Следующий шаг:** {row["next_step"] or "не заполнено"}')
+            if row["source_url"]:
+                st.markdown(f'**Ссылка:** [открыть]({row["source_url"]})')
+            st.markdown(f'**Заметки:** {row["notes"] or "нет"}')
+
+
+def show_backlog_tab() -> None:
+    st.subheader("Бэклог и требования")
+    st.caption("Очередь гипотез, требований, запросов на исследование и внутренних улучшений.")
+    df = load_backlog_data()
+    if df.empty:
+        st.info("Бэклог пока пустой. Когда появятся требования или гипотезы, сохраняй их в этот tracker.")
+        return
+
+    col1, col2 = st.columns(2)
+    with col1:
+        statuses = multiselect_main_filter("Статус", df["status"], "backlog_status")
+    with col2:
+        item_types = multiselect_main_filter("Тип", df["item_type"], "backlog_type")
+
+    filtered = df.copy()
+    if statuses:
+        filtered = filtered[filtered["status"].isin(statuses)]
+    if item_types:
+        filtered = filtered[filtered["item_type"].isin(item_types)]
 
     st.dataframe(
         filtered,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "title": st.column_config.TextColumn("Материал", width="large"),
+            "item_name": st.column_config.TextColumn("Элемент", width="large"),
             "item_type": st.column_config.TextColumn("Тип"),
-            "theme": st.column_config.TextColumn("Тема"),
-            "geography": st.column_config.TextColumn("География"),
-            "source_name": st.column_config.TextColumn("Источник"),
-            "source_url": st.column_config.LinkColumn("Ссылка"),
-            "summary": st.column_config.TextColumn("Summary", width="large"),
-            "why_it_matters": st.column_config.TextColumn("Почему важно", width="large"),
-            "related_idea": st.column_config.TextColumn("Связанная идея", width="medium"),
-            "tags": st.column_config.TextColumn("Теги", width="medium"),
+            "priority": st.column_config.TextColumn("Приоритет"),
+            "status": st.column_config.TextColumn("Статус"),
+            "owner": st.column_config.TextColumn("Owner"),
+            "source": st.column_config.TextColumn("Источник", width="medium"),
+            "requirement": st.column_config.TextColumn("Требование", width="large"),
+            "related_contact": st.column_config.TextColumn("Связанный контакт", width="medium"),
+            "related_artifact": st.column_config.TextColumn("Связанный артефакт", width="medium"),
+            "next_step": st.column_config.TextColumn("Следующий шаг", width="large"),
+            "notes": st.column_config.TextColumn("Заметки", width="large"),
         },
     )
-
-    for row in filtered.to_dict(orient="records"):
-        with st.expander(f'{row["title"]} • {row["item_type"]} • {row["theme"]}'):
-            st.markdown(f'**География:** {row["geography"]}')
-            st.markdown(f'**Источник:** {row["source_name"] or "нет"}')
-            if row["source_url"]:
-                st.markdown(f'**Ссылка:** [открыть]({row["source_url"]})')
-            st.markdown(f'**Summary:** {row["summary"]}')
-            st.markdown(f'**Почему важно:** {row["why_it_matters"]}')
-            st.markdown(f'**Связанная идея:** {row["related_idea"] or "нет"}')
-            st.markdown(f'**Теги:** {row["tags"] or "нет"}')
-
-
-def show_workspace_tab() -> None:
-    st.subheader("Рабочее пространство")
-    st.caption(
-        "Совместный контур для venture discovery: идеи, backlog, контакты, материалы, "
-        "артефакты и generated dashboards."
-    )
-
-    show_workspace_overview()
-    st.divider()
-
-    tab_docs, tab_ideas, tab_tasks, tab_contacts, tab_research = st.tabs(
-        ["Вики", "Идеи", "Задачи", "Контакты", "Материалы"]
-    )
-
-    with tab_docs:
-        show_workspace_docs()
-
-    with tab_ideas:
-        show_ideas_section()
-
-    with tab_tasks:
-        show_tasks_section()
-
-    with tab_contacts:
-        show_contacts_section()
-
-    with tab_research:
-        show_research_library_section()
 
 
 def multiselect_main_filter(label: str, series: pd.Series, key: str) -> list[str]:
@@ -1035,10 +859,9 @@ def show_adoption_cards(df: pd.DataFrame) -> None:
 
 
 def show_adoption_tab() -> None:
-    st.subheader("Рынок и сигналы")
+    st.subheader("Сигналы внедрений")
     st.caption(
-        "Customer stories, deployment signals, новости и наблюдения о том, как "
-        "похожие продукты используются на рынке."
+        "Таблица внедрений, customer stories и рыночных сигналов по похожим решениям."
     )
 
     df = load_adoption_data()
@@ -1072,12 +895,16 @@ def apply_artifact_filters(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def show_artifacts_context() -> None:
-    st.subheader("Текущий продуктовый фокус")
+    st.subheader("Основные артефакты")
     st.markdown(
         """
-**Internal layer:** `shared workspace` для команды discovery.  
-**External layer:** формируем идею будущего `ai-native B2B SaaS`.  
-**Текущие pain areas:** управленческая отчетность, составление и согласование КП, обработка и интерпретация сложных Excel.
+В этом разделе лежат основные документы, в которых фиксируется формирование будущего продукта.
+
+Текущий product discovery идет вокруг трех pain areas:
+
+- управленческая отчетность;
+- составление и согласование КП;
+- обработка и интерпретация сложных Excel.
 """
     )
 
@@ -1244,7 +1071,6 @@ def extract_openclaw_text(response_json: dict) -> str:
 
 
 def ask_openclaw(prompt: str, user_key: str) -> str:
-    agent_profile = load_openclaw_agent_profile()
     headers = {
         "Content-Type": "application/json",
         "x-openclaw-agent-id": OPENCLAW_AGENT_ID,
@@ -1254,7 +1080,7 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
 
     payload = {
         "model": "openclaw",
-        "input": build_openclaw_prompt(prompt, agent_profile),
+        "input": build_chat_prompt(prompt),
         "user": f"{OPENCLAW_CHAT_USER_PREFIX}:{user_key}",
     }
 
@@ -1268,121 +1094,98 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
     return extract_openclaw_text(response.json())
 
 
-def run_chat_turn(raw_prompt: str, mode_key: str) -> str:
-    prompt = build_mode_prompt(raw_prompt, mode_key)
+def run_chat_turn(raw_prompt: str) -> str:
     user_key = get_authenticated_user_key()
-    return ask_openclaw(prompt, user_key)
+    return ask_openclaw(raw_prompt, user_key)
 
 
-def build_openclaw_prompt(user_prompt: str, agent_profile: str) -> str:
+def build_chat_prompt(user_prompt: str) -> str:
+    agent_profile = load_openclaw_agent_profile()
+    files = "\n".join(f"- {path}" for path in CHAT_KNOWLEDGE_BASE_FILES)
+    dashboard_rules = (
+        "Правила работы в Streamlit:\n"
+        f"- lightweight dashboards создаются в `{GENERATED_DASHBOARDS_DIR.name}/<slug>.md`\n"
+        f"- публичная ссылка возвращается в формате `{MAIN_DASHBOARD_PUBLIC_URL}?dashboard=<slug>`\n"
+        "- если нужно доработать основной dashboard или chat dashboard, меняй `app.py`\n"
+    )
+
     if not agent_profile:
-        return user_prompt
+        return (
+            "Опирайся на эти файлы проекта:\n"
+            f"{files}\n\n{dashboard_rules}\nНовый запрос:\n{user_prompt}"
+        )
 
     return (
         "Ниже дан твой постоянный профиль агента и затем новый запрос пользователя.\n\n"
         "=== ПРОФИЛЬ АГЕНТА ===\n"
         f"{agent_profile}\n\n"
+        "=== КЛЮЧЕВЫЕ ФАЙЛЫ ===\n"
+        f"{files}\n\n"
+        "=== ПРАВИЛА DASHBOARD-РАБОТЫ ===\n"
+        f"{dashboard_rules}\n"
         "=== ЗАПРОС ПОЛЬЗОВАТЕЛЯ ===\n"
         f"{user_prompt}"
     )
 
 
-def build_mode_prompt(user_prompt: str, mode_key: str) -> str:
-    mode_config = CHAT_MODE_CONFIG.get(mode_key)
-    if not mode_config:
-        return user_prompt
-
-    files = "\n".join(f"- {path}" for path in mode_config["files"])
-    dashboard_rules = (
-        "Если пользователь просит создать новый дашборд или доработать существующий Streamlit-дашборд, "
-        "используй такие правила:\n"
-        f"- для lightweight dashboard создай или обнови markdown-файл в `{GENERATED_DASHBOARDS_DIR.name}/<slug>.md`\n"
-        f"- после создания или обновления верни ссылку формата `{MAIN_DASHBOARD_PUBLIC_URL}?dashboard=<slug>`\n"
-        "- если нужно менять основной Streamlit-интерфейс или чат-дашборд, редактируй `app.py` и связанные deploy-файлы\n"
-        "- не обещай ссылку, пока не определил slug дашборда явно\n"
-    )
-    return (
-        f"{mode_config['context']}\n\n"
-        "При ответе опирайся в первую очередь на эти файлы проекта:\n"
-        f"{files}\n\n"
-        f"{dashboard_rules}\n"
-        "Новый запрос:\n"
-        f"{user_prompt}"
-    )
-
-
-def get_chat_messages(mode_key: str) -> list[dict[str, str]]:
-    history_key = f"chat_messages_{mode_key}"
-    mode_label = CHAT_MODE_CONFIG[mode_key]["label"]
-    mode_description = CHAT_MODE_CONFIG[mode_key]["description"]
+def get_chat_messages() -> list[dict[str, str]]:
     default_message = {
         "role": "assistant",
         "content": (
-            f"Режим `{mode_label}`.\n\n"
-            f"{mode_description}\n\n"
-            "Спроси меня про проект, и я отвечу как рабочий агент OpenClaw."
+            "Этот чат работает как рабочий интерфейс OpenClaw.\n\n"
+            "Через него можно обновлять конкурентов, сигналы внедрений, контакты, интервью, "
+            "бэклог, артефакты и создавать новые lightweight dashboards."
         ),
     }
-    if history_key not in st.session_state:
-        st.session_state[history_key] = [default_message]
-    return st.session_state[history_key]
+    if "chat_messages" not in st.session_state:
+        st.session_state["chat_messages"] = [default_message]
+    return st.session_state["chat_messages"]
 
 
-def set_chat_messages(mode_key: str, messages: list[dict[str, str]]) -> None:
-    st.session_state[f"chat_messages_{mode_key}"] = messages
-
-
-def render_quick_chat_actions(mode_key: str) -> str | None:
-    quick_prompts = CHAT_MODE_CONFIG[mode_key]["quick_prompts"]
-    columns = st.columns(len(quick_prompts))
-    for index, quick_prompt in enumerate(quick_prompts):
-        if columns[index].button(
-            quick_prompt,
-            key=f"quick_prompt_{mode_key}_{index}",
-            use_container_width=True,
-        ):
-            return quick_prompt
-    return None
+def set_chat_messages(messages: list[dict[str, str]]) -> None:
+    st.session_state["chat_messages"] = messages
 
 
 def render_top_navigation(view: str) -> None:
     main_link = MAIN_DASHBOARD_PUBLIC_URL
     chat_link = CHAT_DASHBOARD_PUBLIC_URL
     if view == "chat":
-        st.markdown(f"[Открыть основной workspace]({main_link})")
+        st.markdown(f"[Открыть основной dashboard]({main_link})")
     else:
         st.markdown(f"[Открыть чат-дашборд]({chat_link})")
 
 
-def show_generated_dashboards_tab() -> None:
-    st.subheader("Созданные дашборды")
-    st.caption(
-        "Здесь отображаются lightweight views, созданные или обновленные через чатбота OpenClaw."
-    )
-
-    render_generated_dashboard_list()
-
-
-def render_generated_dashboard_list(limit: int | None = None) -> None:
+def render_generated_dashboard_table(limit: int | None = None) -> None:
     dashboards = list_generated_dashboards()
     if not dashboards:
-        st.info(
-            "Пока нет созданных generated dashboards. Попроси чатбота создать dashboard и вернуть ссылку."
-        )
+        st.info("Пока нет созданных generated dashboards.")
         return
 
     if limit is not None:
         dashboards = dashboards[:limit]
 
-    for dashboard in dashboards:
-        with st.container(border=True):
-            st.markdown(f"### {dashboard['title']}")
-            st.markdown(f"**Slug:** `{dashboard['slug']}`")
-            st.markdown(f"**Ссылка:** [{dashboard['link']}]({dashboard['link']})")
-            st.markdown(f"**Файл:** `{dashboard['path']}`")
-            preview = dashboard["content"][:600].strip()
-            if preview:
-                st.markdown(preview)
+    df = pd.DataFrame(
+        [
+            {
+                "title": dashboard["title"],
+                "slug": dashboard["slug"],
+                "link": dashboard["link"],
+                "path": dashboard["path"],
+            }
+            for dashboard in dashboards
+        ]
+    )
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "title": st.column_config.TextColumn("Дашборд", width="large"),
+            "slug": st.column_config.TextColumn("Slug"),
+            "link": st.column_config.LinkColumn("Ссылка"),
+            "path": st.column_config.TextColumn("Файл", width="large"),
+        },
+    )
 
 
 def show_generated_dashboard_page(slug: str) -> None:
@@ -1397,7 +1200,7 @@ def show_generated_dashboard_page(slug: str) -> None:
     st.caption(f"Generated dashboard: `{dashboard['slug']}`")
     render_top_navigation("generated")
     st.markdown(
-        f"[Назад к основному workspace]({MAIN_DASHBOARD_PUBLIC_URL}) | "
+        f"[Назад к основному dashboard]({MAIN_DASHBOARD_PUBLIC_URL}) | "
         f"[Открыть чат-дашборд]({CHAT_DASHBOARD_PUBLIC_URL})"
     )
     st.divider()
@@ -1407,72 +1210,40 @@ def show_generated_dashboard_page(slug: str) -> None:
 def show_chat_tab() -> None:
     st.subheader("Чат-бот")
     st.caption(
-        "Интерфейс для работы с OpenClaw по venture discovery, knowledge base и changes в workspace. "
-        "Контракт рассчитан на OpenResponses API `POST /v1/responses`."
+        "Чат с OpenClaw для обновления trackers, артефактов и создания новых lightweight dashboards."
     )
     render_top_navigation("chat")
-    mode_key = st.selectbox(
-        "Режим работы",
-        list(CHAT_MODE_CONFIG.keys()),
-        format_func=lambda value: CHAT_MODE_CONFIG[value]["label"],
-    )
-    mode_config = CHAT_MODE_CONFIG[mode_key]
-    messages = get_chat_messages(mode_key)
+    messages = get_chat_messages()
 
-    st.caption(
-        f"Сейчас активен режим: **{mode_config['label']}**. "
-        f"{mode_config['description']}"
-    )
+    st.markdown("### Созданные дашборды")
+    render_generated_dashboard_table(limit=12)
 
-    with st.expander("Статус backend", expanded=not openclaw_is_configured()):
-        st.markdown(f"**OpenClaw endpoint:** `{OPENCLAW_RESPONSES_URL or 'не задан'}`")
-        st.markdown(f"**Agent ID:** `{OPENCLAW_AGENT_ID}`")
-        st.markdown(f"**Пользователь:** `{get_authenticated_user_key()}`")
-        if openclaw_is_configured():
-            st.success("Контракт OpenClaw задан. После деплоя серверный tab сможет ходить в gateway.")
-        else:
-            st.warning(
-                "Переменная `OPENCLAW_RESPONSES_URL` пока не задана. "
-                "После серверного деплоя tab начнет отправлять запросы в OpenClaw."
-            )
-
-    with st.expander("Созданные дашборды", expanded=False):
-        st.caption(
-            "Здесь можно быстро открыть последние generated dashboards, созданные через OpenClaw."
-        )
-        render_generated_dashboard_list(limit=8)
-
-    selected_quick_prompt = None
-
-    if st.button("Очистить диалог", key=f"clear_chat_history_{mode_key}"):
-        set_chat_messages(mode_key, messages[:1])
+    if st.button("Очистить диалог", key="clear_chat_history"):
+        set_chat_messages(messages[:1])
         st.rerun()
 
     for message in messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    prompt = selected_quick_prompt or st.chat_input(
-        "Напиши вопрос по workspace, идеям, материалам, конкурентам или разработке"
-    )
+    prompt = st.chat_input("Напиши, что нужно сохранить, исследовать или изменить в дашборде")
     if not prompt:
         return
 
     messages.append({"role": "user", "content": prompt})
-    set_chat_messages(mode_key, messages)
+    set_chat_messages(messages)
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         if not openclaw_is_configured():
             reply = (
-                "Чат-контур уже добавлен, но OpenClaw backend еще не подключен к этому окружению. "
-                "После деплоя на сервере запросы пойдут в `OPENCLAW_RESPONSES_URL`."
+                "Чат-контур уже добавлен, но OpenClaw backend еще не подключен к этому окружению."
             )
             st.markdown(reply)
         else:
             try:
-                reply = run_chat_turn(prompt, mode_key)
+                reply = run_chat_turn(prompt)
                 st.markdown(reply)
             except requests.HTTPError as exc:
                 response_text = exc.response.text[:500] if exc.response is not None else ""
@@ -1483,7 +1254,7 @@ def show_chat_tab() -> None:
                 st.error(reply)
 
     messages.append({"role": "assistant", "content": reply})
-    set_chat_messages(mode_key, messages)
+    set_chat_messages(messages)
 
 
 def main() -> None:
@@ -1496,26 +1267,20 @@ def main() -> None:
         return
 
     if view == "chat":
-        st.title("Moreforms: чат-дашборд")
-        st.caption(
-            "Отдельный chat workspace для работы с OpenClaw по стратегии, research, knowledge base и изменениям дашбордов."
-        )
+        st.title("Moreforms: чат")
+        st.caption("Отдельный чат-дашборд: только OpenClaw и ссылки на созданные дашборды.")
         show_chat_tab()
         return
 
-    st.title("Moreforms: discovery workspace")
+    st.title("Moreforms: shared workspace")
     st.caption(
-        "Shared cockpit для venture discovery: идеи, задачи, контакты, research materials, "
-        "конкуренты, артефакты и generated dashboards."
+        "Основной dashboard для ведения конкурентов, сигналов внедрений, контактов, интервью, артефактов и backlog требований."
     )
     render_top_navigation("main")
 
-    tab_workspace, tab_competitors, tab_adoption, tab_artifacts, tab_generated = st.tabs(
-        ["Рабочее пространство", "Конкуренты", "Рынок и сигналы", "Артефакты", "Созданные дашборды"]
+    tab_competitors, tab_adoption, tab_contacts, tab_artifacts, tab_interviews, tab_backlog = st.tabs(
+        ["Конкуренты", "Сигналы внедрений", "Контакты", "Артефакты", "Интервью", "Бэклог и требования"]
     )
-
-    with tab_workspace:
-        show_workspace_tab()
 
     with tab_competitors:
         df = load_data()
@@ -1534,11 +1299,17 @@ def main() -> None:
     with tab_adoption:
         show_adoption_tab()
 
+    with tab_contacts:
+        show_contacts_tab()
+
     with tab_artifacts:
         show_artifacts_tab()
 
-    with tab_generated:
-        show_generated_dashboards_tab()
+    with tab_interviews:
+        show_interviews_tab()
+
+    with tab_backlog:
+        show_backlog_tab()
 
 
 if __name__ == "__main__":

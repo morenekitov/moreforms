@@ -1,99 +1,63 @@
 # OpenClaw x Streamlit
 
-## Схема интерфейсов
+## Поверхности
 
 В проекте есть два URL-режима:
 
-- основной workspace dashboard: `https://app.moreforms.ru`
-- chat dashboard: `https://app.moreforms.ru?view=chat`
+- основной dashboard: `https://app.moreforms.ru`
+- чат-дашборд: `https://app.moreforms.ru?view=chat`
 
-Основной dashboard нужен для:
+## Основной dashboard
 
-- shared workspace;
-- идей;
-- задач;
-- контактов;
-- research library;
-- конкурентов;
-- рыночных сигналов;
-- discovery-артефактов;
-- просмотра generated dashboards.
+Основной dashboard показывает только рабочие сценарии команды:
 
-Chat dashboard нужен только для работы с OpenClaw.
+- конкуренты;
+- сигналы внедрений;
+- контакты;
+- артефакты;
+- проведенные интервью;
+- бэклог и требования.
 
-Важное правило для content и generated outputs:
+## Чат-дашборд
 
-- workspace dashboard описывает внутреннюю систему команды;
-- продуктовые артефакты описывают будущую внешнюю SaaS-идею;
-- не смешивай эти два слоя в одном ответе без явной пометки.
+Чат-дашборд содержит только:
 
-## Как OpenClaw используется в Streamlit
+- чат с OpenClaw;
+- таблицу со ссылками на созданные lightweight dashboards.
 
-Streamlit ходит не в сложный внешний gateway, а во внутренний HTTP-adapter, который:
+## Правила изменений
 
-- принимает `POST /v1/responses`;
-- вызывает `openclaw agent --json`;
-- возвращает `output_text` для chat UI.
+### Если нужно обновить tracker
 
-Это упрощает эксплуатацию VPS и позволяет держать авторизацию на уровне приложения.
+Обновляй соответствующий CSV:
 
-## Как работать с dashboard changes
+- `data/competitors.csv`
+- `data/adoption_mentions.csv`
+- `data/contacts.csv`
+- `data/interviews.csv`
+- `data/backlog.csv`
+- `data/artifacts.csv`
 
-### 1. Lightweight dashboards
+### Если нужно обновить продуктовую логику
 
-Если задача решается markdown-страницей без отдельной сложной логики:
+Обновляй:
+
+- `artifacts.md`
+- `artifacts/*.md`
+
+### Если нужно создать lightweight dashboard
 
 - создай или обнови `generated_dashboards/<slug>.md`
-- slug должен быть коротким, lowercase, через дефисы или `_`
+- верни ссылку вида `https://app.moreforms.ru?dashboard=<slug>`
 
-После этого верни ссылку:
+### Если нужно поменять Streamlit UI
 
-- `https://app.moreforms.ru?dashboard=<slug>`
-
-### 2. Основной workspace dashboard
-
-Если нужно менять:
-
-- структуру главного dashboard;
-- новые разделы workspace;
-- таблицы и карточки;
-- роутинг по query params;
-- общий UX для совместной работы;
-
-то редактируй:
+Меняй:
 
 - `app.py`
-
-### 3. Chat dashboard
-
-Если нужно менять:
-
-- режимы чата;
-- quick actions;
-- prompt building;
-- formatting ответа;
-- инструкции для OpenClaw;
-
-то редактируй:
-
-- `app.py`
-- `openclaw_agent.md`
-- `openclaw_streamlit.md`
-- `deploy/openclaw_responses_adapter.py` при необходимости
-
-## Что должен делать агент после создания дашборда
-
-Если generated dashboard создан или обновлен, ответ должен содержать:
-
-- короткий вывод;
-- какие файлы изменены;
-- slug;
-- прямую ссылку;
-- при возможности короткий preview содержимого.
 
 ## Ограничения
 
-- не создавай новый Python entrypoint без необходимости;
-- не ломай основной workspace ради одного эксперимента;
-- не придумывай slug и ссылку без реально созданного файла;
-- если задача относится к shared knowledge base, сначала обновляй trackers и docs, а потом уже строй dashboard.
+- не добавляй лишние разделы в основной dashboard без прямого запроса;
+- не превращай chat dashboard в второй основной dashboard;
+- не придумывай ссылку без реально созданного slug.
