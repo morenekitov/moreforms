@@ -1,55 +1,44 @@
-# PRD На MVP
+# Solution Hypotheses И MVP Frame
 
-## Цель MVP
+## На этом этапе
 
-Собрать минимально полезный shared discovery workspace, в котором несколько участников команды могут:
+Мы еще не зафиксировали один конечный продукт.
 
-- вести идеи и гипотезы;
-- хранить контакты и research materials;
-- смотреть competitor landscape;
-- открывать discovery-артефакты;
-- использовать OpenClaw для создания новых views и dashboards.
+Этот документ нужен, чтобы держать несколько возможных направлений и не сводить все слишком рано к одной реализации.
 
-## Целевой пользователь
+## Возможные product directions
 
-- small venture team;
-- founder-led discovery team;
-- product + research + builder trio;
-- advisor circle с read-only потребностями.
+### 1. AI-native управленческая отчетность
 
-## In Scope
+Фокус:
 
-- основной dashboard c workspace-разделами;
-- chat dashboard на OpenClaw;
-- trackers для идей, задач, контактов и материалов;
-- просмотр артефактов;
-- просмотр competitors и signals;
-- generated dashboards по slug.
+- сбор;
+- интерпретация;
+- presentation layer;
+- пояснения и ready-to-share summaries.
 
-## Out Of Scope
+### 2. AI-native proposal workflow
 
-- полноценная CRM;
-- внешняя multi-tenant collaboration suite;
-- сложные permissions и role matrix;
-- автоматическая синхронизация с внешними knowledge bases.
+Фокус:
 
-## Ключевые user stories
+- подготовка КП;
+- версия;
+- согласование;
+- адаптация под клиента;
+- ускорение ответа.
 
-- как venture lead, я хочу видеть идеи, сигналы и next steps в одном месте;
-- как исследователь, я хочу быстро добавлять материалы и привязывать их к идее;
-- как builder, я хочу просить чат создать dashboard или доработать существующий view;
-- как advisor, я хочу быстро открыть текущую thesis и связанные доказательства.
+### 3. AI-native copilot for complex Excel
 
-## Acceptance Criteria
+Фокус:
 
-- идеи, задачи, контакты и материалы доступны в основном dashboard;
-- чат может отвечать по knowledge base;
-- чат может создавать generated dashboards и возвращать рабочую ссылку;
-- продуктовые артефакты читаются прямо из dashboard;
-- changes в repo можно использовать как источник правды для команды.
+- понимание структуры файла;
+- объяснение данных;
+- быстрый анализ;
+- генерация выводов и презентации результата.
 
-## Открытые вопросы
+## Что должен дать следующий discovery step
 
-- нужен ли отдельный tracker решений;
-- какие dashboards должны стать постоянными, а не generated;
-- нужен ли экспорт для внешних участников.
+- понять, какой wedge запускать первым;
+- какие 1-2 use case самые частые;
+- какой buyer наиболее понятен;
+- можно ли строить один продукт или стоит начать с одного pain cluster.

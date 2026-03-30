@@ -1,5 +1,6 @@
 task_name,workstream,priority,status,owner,due_date,related_artifact,outcome,notes
-Собрать top-10 SMB pain points,Research,критично,в работе,Никита,2026-04-03,artifacts/one_pager.md,Обновленный список pain points для one-pager и JTBD,Нужен synthesis из текущих материалов и конкурентов
-Подготовить список интервью,Discovery,критично,запланировано,Никита,2026-04-02,data/contacts.csv,Shortlist контактов для следующего discovery sprint,Связать с ICP и сегментами из ideas.csv
-Переупаковать competitor landscape под SMB,Strategy,высокий,в работе,AI agent,2026-04-04,artifacts/competitor_map.md,Более чистая карта прямых и смежных игроков,Текущая карта наследует старый контекст
-Собрать generated dashboard по активным идеям,App,средний,backlog,AI agent,2026-04-05,generated_dashboards,Markdown dashboard со сравнением идей,Удобно для еженедельных синков
+Собрать evidence по 3 pain areas,Research,критично,в работе,Никита,2026-04-03,artifacts/one_pager.md,Обновленный список наблюдений по отчетности КП и Excel для problem map,Нужен synthesis из текущих разговоров материалов и конкурентов
+Подготовить shortlist интервью по отчетности КП и Excel,Discovery,критично,запланировано,Никита,2026-04-02,data/contacts.csv,Список людей для следующего discovery sprint,Связать интервью с тремя pain areas и ролями из artifacts
+Уточнить ICP и buying context по 3 сценариям,Strategy,высокий,в работе,AI agent,2026-04-04,artifacts/roles_and_scenarios.md,Черновая карта кто покупатель пользователь и кто инициатор боли,Важно разделить owner buyer и end user
+Переупаковать competitor landscape под reporting КП и Excel,Strategy,высокий,в работе,AI agent,2026-04-04,artifacts/competitor_map.md,Более чистая карта прямых и смежных игроков под текущую thesis,Текущая карта еще содержит legacy контекст
+Собрать generated dashboard по активным wedge candidates,App,средний,backlog,AI agent,2026-04-05,generated_dashboards,Markdown dashboard со сравнением трех направлений и evidence по ним,Удобно для еженедельных синков и выбора фокуса

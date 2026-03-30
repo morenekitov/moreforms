@@ -1075,9 +1075,9 @@ def show_artifacts_context() -> None:
     st.subheader("Текущий продуктовый фокус")
     st.markdown(
         """
-**Текущий режим:** shared venture discovery workspace.  
-**Базовый контур:** `idea -> evidence -> competitor map -> contacts -> prototype -> decision`.  
-**Задача первой версии:** дать один рабочий cockpit для команды и AI, а не разрозненный набор чатов и заметок.
+**Internal layer:** `shared workspace` для команды discovery.  
+**External layer:** формируем идею будущего `ai-native B2B SaaS`.  
+**Текущие pain areas:** управленческая отчетность, составление и согласование КП, обработка и интерпретация сложных Excel.
 """
     )
 
@@ -1176,8 +1176,8 @@ def show_artifact_cards(df: pd.DataFrame) -> None:
 def show_artifacts_tab() -> None:
     st.subheader("Продуктовые артефакты")
     st.caption(
-        "Discovery-артефакты, в которых фиксируются thesis, roles, JTBD, MVP, "
-        "гипотезы и риски."
+        "Артефакты по мере формирования идеи конечного продукта: от problem thesis и ICP "
+        "до solution hypotheses, PMF-гипотез и рисков."
     )
 
     df = load_artifacts_data()
