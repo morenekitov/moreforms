@@ -1436,34 +1436,13 @@ def show_chat_tab() -> None:
                 "После серверного деплоя tab начнет отправлять запросы в OpenClaw."
             )
 
-    with st.expander("Профиль агента", expanded=False):
-        agent_profile = load_openclaw_agent_profile()
-        if agent_profile:
-            st.markdown(agent_profile)
-        else:
-            st.warning("Файл `openclaw_agent.md` не найден.")
-
-    with st.expander("Инструкции OpenClaw x Streamlit", expanded=False):
-        streamlit_guide = load_openclaw_streamlit_guide()
-        if streamlit_guide:
-            st.markdown(streamlit_guide)
-        else:
-            st.warning("Файл `openclaw_streamlit.md` не найден.")
-
-    with st.expander("Фокус режима", expanded=False):
-        st.markdown(f"**Что делает режим:** {mode_config['description']}")
-        st.markdown("**Ключевые файлы:**")
-        for path in mode_config["files"]:
-            st.markdown(f"- `{path}`")
-
     with st.expander("Созданные дашборды", expanded=False):
         st.caption(
             "Здесь можно быстро открыть последние generated dashboards, созданные через OpenClaw."
         )
         render_generated_dashboard_list(limit=8)
 
-    st.markdown("**Быстрые действия**")
-    selected_quick_prompt = render_quick_chat_actions(mode_key)
+    selected_quick_prompt = None
 
     if st.button("Очистить диалог", key=f"clear_chat_history_{mode_key}"):
         set_chat_messages(mode_key, messages[:1])
