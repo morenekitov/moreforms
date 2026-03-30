@@ -1196,7 +1196,7 @@ def ask_openclaw(prompt: str, user_key: str) -> str:
 
     payload = {
         "model": "openclaw",
-        "input": build_chat_prompt(prompt),
+        "input": prompt,
         "user": f"{OPENCLAW_CHAT_USER_PREFIX}:{user_key}",
     }
 
