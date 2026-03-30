@@ -1360,12 +1360,19 @@ def show_generated_dashboards_tab() -> None:
         "Здесь отображаются lightweight views, созданные или обновленные через чатбота OpenClaw."
     )
 
+    render_generated_dashboard_list()
+
+
+def render_generated_dashboard_list(limit: int | None = None) -> None:
     dashboards = list_generated_dashboards()
     if not dashboards:
         st.info(
             "Пока нет созданных generated dashboards. Попроси чатбота создать dashboard и вернуть ссылку."
         )
         return
+
+    if limit is not None:
+        dashboards = dashboards[:limit]
 
     for dashboard in dashboards:
         with st.container(border=True):
@@ -1448,6 +1455,12 @@ def show_chat_tab() -> None:
         st.markdown("**Ключевые файлы:**")
         for path in mode_config["files"]:
             st.markdown(f"- `{path}`")
+
+    with st.expander("Созданные дашборды", expanded=False):
+        st.caption(
+            "Здесь можно быстро открыть последние generated dashboards, созданные через OpenClaw."
+        )
+        render_generated_dashboard_list(limit=8)
 
     st.markdown("**Быстрые действия**")
     selected_quick_prompt = render_quick_chat_actions(mode_key)
