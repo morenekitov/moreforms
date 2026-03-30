@@ -11,7 +11,7 @@ OPENCLAW_BIN = os.getenv("OPENCLAW_BIN", "/usr/bin/openclaw")
 OPENCLAW_RUN_USER = os.getenv("OPENCLAW_RUN_USER", "openclaw")
 DEFAULT_AGENT_ID = os.getenv("OPENCLAW_DEFAULT_AGENT_ID", "main")
 DEFAULT_THINKING = os.getenv("OPENCLAW_DEFAULT_THINKING", "minimal")
-REQUEST_TIMEOUT = int(os.getenv("OPENCLAW_ADAPTER_TIMEOUT_SECONDS", "180"))
+REQUEST_TIMEOUT = int(os.getenv("OPENCLAW_ADAPTER_TIMEOUT_SECONDS", "300"))
 
 
 def build_command(agent_id: str, message: str) -> list[str]:
