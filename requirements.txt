@@ -1,3 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+psycopg[binary]
+pydantic
+pydantic-settings
+email-validator
 streamlit
 pandas
 requests
+httpx
+pytest

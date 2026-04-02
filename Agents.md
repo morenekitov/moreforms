@@ -1,177 +1,221 @@
-# Agents.md
+# AGENTS.md
 
-## Роль помощника
+## Project purpose
 
-Ты работаешь в проекте `moreforms` как AI-first помощник для команды, которая ведет discovery будущего `AI-native B2B SaaS`.
+This project is an internal startup discovery system for:
 
-`shared workspace` в этом репозитории — внутренний продукт команды.
+- hypotheses tracking
+- customer development interviews
+- insights extraction
+- decisions by hypothesis
+- competitor and market signal tracking
+- research notes / wiki
+- Streamlit-based dashboard for founders
 
-Он нужен не как конечный SaaS для клиентов, а как operational dashboard для:
+The system is not a generic CRM.  
+Its main workflow is:
 
-- фиксации конкурентов;
-- фиксации сигналов внедрений;
-- фиксации контактов и проблем бизнеса;
-- фиксации проведенных интервью;
-- ведения backlog и требований;
-- просмотра и обновления продуктовых артефактов;
-- создания lightweight dashboards через OpenClaw.
+`hypothesis -> interview -> insight -> decision`
 
-## Основные сценарии
+Additional validation loop:
 
-### 1. Конкуренты
+`hypothesis <-> competitors <-> signals`
 
-Файл:
+## Interaction model
 
-`/Users/morenekitov/Documents/moreforms/data/competitors.csv`
+The system is designed with a strict separation:
 
-Если пользователь:
+- `READ` -> Streamlit dashboard
+- `WRITE` -> Codex / agent interface
 
-- кидает ссылку на продукт;
-- кидает ссылку на funding;
-- описывает компанию;
-- просит обогатить базу по теме, pain area, источнику или категории;
+Users should not manually input most structured data via UI.
 
-то твоя задача:
+Instead:
 
-- добавить или обновить запись в `competitors.csv`;
-- сохранить все релевантные ссылки;
-- кратко зафиксировать, почему игрок важен;
-- при необходимости обновить связанные артефакты.
+- users provide raw inputs such as links, transcripts, notes and source materials;
+- agent processes inputs;
+- agent structures and writes data via backend APIs.
 
-### 2. Сигналы внедрений
+## Preferred stack
 
-Файл:
+- Python
+- FastAPI
+- PostgreSQL
+- Streamlit
+- Docker Compose
 
-`/Users/morenekitov/Documents/moreforms/data/adoption_mentions.csv`
+## Core entities
 
-Если пользователь просит собрать или дополнить сигналы:
+- hypotheses
+- companies
+- contacts
+- interviews
+- insights
+- decisions
+- pages
+- attachments
+- competitors
+- signals
+- allowed_users
+- audit_logs
 
-- внедрения;
-- customer stories;
-- публичные deployment mentions;
-- новости о том, как похожие решения реально используются;
+## Current development stage
 
-то:
+Repository is moving from a legacy CSV-based workspace to v1 backend-first architecture.
 
-- добавляй или обновляй записи в `adoption_mentions.csv`;
-- сохраняй ссылку на источник;
-- фиксируй, почему сигнал важен.
+Primary implementation targets now:
 
-### 3. Контакты
+1. data model
+2. backend API
+3. auth and access control
+4. Streamlit read-layer
+5. agent-safe write paths
 
-Файл:
+## Business rules
 
-`/Users/morenekitov/Documents/moreforms/data/contacts.csv`
+### Hypotheses
 
-Если пользователь кидает:
+Allowed statuses:
 
-- имя контакта;
-- компанию;
-- роль;
-- проблему бизнеса;
-- контекст знакомства;
+- `new`
+- `queued`
+- `testing`
+- `signal`
+- `validated`
+- `invalidated`
+- `parked`
+- `archived`
 
-то:
+Allowed assumption types:
 
-- сохраняй это в `contacts.csv`;
-- обязательно фиксируй `business_problem`;
-- обновляй `next_step`, если он понятен.
+- `problem`
+- `solution`
+- `pricing`
+- `channel`
+- `market`
 
-### 4. Проведенные интервью
+### Interviews
 
-Файл:
+Each interview should ideally be linked to:
 
-`/Users/morenekitov/Documents/moreforms/data/interviews.csv`
+- one contact
+- optionally one company
+- one primary hypothesis
 
-Если пользователь делится результатом интервью:
+### Insights
 
-- добавляй запись в `interviews.csv`;
-- фиксируй дату, роль, problem area, summary, key findings и next step;
-- если вывод влияет на product thesis, обновляй артефакты.
+Each insight must be linked to:
 
-### 5. Бэклог и требования
+- one hypothesis
+- optionally one interview
 
-Файл:
+Allowed types:
 
-`/Users/morenekitov/Documents/moreforms/data/backlog.csv`
+- `pain`
+- `job`
+- `workaround`
+- `willingness_to_pay`
+- `objection`
+- `buying_process`
+- `competitor`
+- `other`
 
-Если пользователь формулирует:
+### Decisions
 
-- гипотезу;
-- требование;
-- запрос на доработку;
-- идею для исследования;
-- внутреннюю задачу;
+Decisions are tied to a hypothesis and represent explicit conclusion:
 
-то:
+- `go`
+- `iterate`
+- `pivot`
+- `drop`
+- `need_more_evidence`
 
-- сохраняй это в `backlog.csv`;
-- указывай тип, статус, приоритет и следующий шаг, если он понятен.
+### Signals
 
-### 6. Артефакты
+Signals represent evidence that a problem, solution, budget or adoption pattern exists on the market.
 
-Файлы:
+Allowed signal types:
 
-- `/Users/morenekitov/Documents/moreforms/artifacts.md`
-- `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
-- `/Users/morenekitov/Documents/moreforms/artifacts/*.md`
+- `problem_signal`
+- `solution_signal`
+- `budget_signal`
+- `urgency_signal`
+- `adoption_signal`
 
-Артефакты описывают формирование внешней продуктовой идеи.
+## Streamlit requirements
 
-Сейчас основной product focus:
+Streamlit is a read-oriented dashboard.  
+It should visualize:
 
-1. управленческая отчетность;
-2. составление и согласование КП;
-3. обработка и интерпретация сложных Excel.
+- overview
+- hypotheses
+- interviews
+- insights
+- signals
+- competitors
+- decisions
+- wiki / notes
 
-Если меняется thesis, pain framing, wedge, ICP, learning или выводы интервью:
+The UI should be in Russian where possible.
 
-- обновляй `artifacts.md`;
-- обновляй `data/artifacts.csv`;
-- обновляй затронутые markdown-артефакты.
+Do not turn Streamlit into the main write interface.
 
-## Источники правды
+## Agent safety rules
 
-В первую очередь опирайся на:
+Agents must not have unrestricted direct write access to production DB.
 
-- `/Users/morenekitov/Documents/moreforms/data/competitors.csv`
-- `/Users/morenekitov/Documents/moreforms/data/adoption_mentions.csv`
-- `/Users/morenekitov/Documents/moreforms/data/contacts.csv`
-- `/Users/morenekitov/Documents/moreforms/data/interviews.csv`
-- `/Users/morenekitov/Documents/moreforms/data/backlog.csv`
-- `/Users/morenekitov/Documents/moreforms/data/artifacts.csv`
-- `/Users/morenekitov/Documents/moreforms/artifacts.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/one_pager.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/roles_and_scenarios.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/jtbd.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/user_journey.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/competitor_map.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/prd_mvp.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/metrics_and_hypotheses.md`
-- `/Users/morenekitov/Documents/moreforms/artifacts/risk_register.md`
-- `/Users/morenekitov/Documents/moreforms/app.py`
-- `/Users/morenekitov/Documents/moreforms/openclaw_agent.md`
-- `/Users/morenekitov/Documents/moreforms/openclaw_streamlit.md`
+Preferred write path:
 
-## Правила работы
+- validated backend APIs
+- tool-like endpoints
+- service account with limited scope
 
-1. Если появляется новая сущность, добавляй ее в соответствующий tracker, а не только отвечай в чате.
-2. Если пользователь просит enrichment, обогащай существующую таблицу, а не создавай дубли.
-3. Если вывод влияет на продуктовую thesis, обновляй артефакты.
-4. Если пользователь просит новый lightweight dashboard, создавай файл в `generated_dashboards/<slug>.md` и возвращай ссылку вида:
-   `https://app.moreforms.ru?dashboard=<slug>`
-5. Если нужен runtime change в интерфейсе, меняй `app.py`.
+Agents may:
 
-## Git-правило
+- read structured data
+- create draft hypotheses
+- add interview summaries
+- add insights
+- create draft wiki pages
+- create competitors and signals
+- run search and synthesis tasks
 
-После любого изменения файлов в проекте:
+Agents must not without explicit approval:
 
-1. обнови нужные trackers и документы;
-2. сделай `git commit`;
-3. сразу сделай `git push` в `main`, если пользователь явно не попросил иное.
+- delete records
+- bulk edit records
+- mark hypotheses as `validated` or `invalidated`
+- alter allowed users / auth configuration
+- modify production secrets
 
-## Язык
+## Coding rules
 
-- предпочитай русский язык;
-- английский оставляй для общеупотребимых терминов и имен собственных:
-  `AI`, `LLM`, `SQL`, `BI`, `workflow`, `startup`, `PMF`.
+- Keep code modular.
+- Use migrations.
+- Use typed schemas and explicit validation.
+- No secrets in repository.
+- Maintain `.env.example`.
+- Add tests for core business logic.
+- Keep deployment simple.
+- Prefer readability over premature abstraction.
+
+## Deployment target
+
+Single-server deployment is acceptable for v1:
+
+- reverse proxy
+- backend
+- postgres
+- streamlit
+- backup job
+
+Use Docker Compose.
+
+## Git rule
+
+After file changes:
+
+1. make the smallest coherent implementation slice;
+2. run available checks;
+3. commit;
+4. push to `main`, unless user explicitly asks otherwise.

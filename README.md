@@ -1,56 +1,103 @@
 # moreforms
 
-AI-first discovery workspace for a team exploring startup ideas for SMB.
+V1 разработки `moreforms` как internal startup discovery system.
 
-## Что внутри
+Система строится вокруг цикла:
 
-- shared workspace для идей, backlog, контактов и исследовательских материалов;
-- конкурентная карта и рыночные сигналы;
-- продуктовые артефакты;
-- отдельный chat dashboard на OpenClaw;
-- generated dashboards, которые чат может создавать и обновлять.
+`hypothesis -> interview -> insight -> decision`
+
+Дополнительно в контур входят:
+
+- конкуренты;
+- сигналы рынка и внедрений;
+- wiki / notes;
+- controlled agent workflows через backend API;
+- Streamlit dashboard как read-layer.
+
+## Текущее состояние
+
+Репозиторий находится в переходе от старого CSV-based workspace к новой архитектуре v1:
+
+- `app/` — новый backend API слой;
+- `streamlit_app/` — новый Streamlit read-layer;
+- `docs/` — план реализации и документация по v1;
+- старый root-level [app.py](/Users/morenekitov/Documents/moreforms/app.py) пока сохранен как legacy workspace и будет убран после переноса.
+
+## Целевая модель работы
+
+- `READ` -> Streamlit dashboard
+- `WRITE` -> Codex / agent interface
+
+Пользователь не должен вручную заносить большую часть данных через UI.  
+Сырой ввод поступает в agent layer, затем структурируется и записывается через backend API.
+
+## Основные сущности v1
+
+- `hypotheses`
+- `companies`
+- `contacts`
+- `interviews`
+- `insights`
+- `decisions`
+- `pages`
+- `attachments`
+- `competitors`
+- `signals`
+- `allowed_users`
+- `audit_logs`
 
 ## Структура
 
-- `workspace_structure.md` — базовая модель совместной работы
-- `Agents.md` — правила для агента
-- `artifacts.md` — обзор обязательных discovery-артефактов
-- `artifacts/` — отдельные артефакты
-- `data/ideas.csv` — идеи и venture thesis
-- `data/tasks.csv` — backlog и next actions
-- `data/contacts.csv` — контакты и interview pipeline
-- `data/research_library.csv` — статьи, видео, заметки и market signals
-- `data/competitors.csv` — конкурентная карта
-- `data/adoption_mentions.csv` — кейсы и сигналы использования похожих продуктов
-- `data/artifacts.csv` — реестр артефактов
-- `app.py` — Streamlit workspace
-- `deploy/` — серверный контур для Streamlit, Google login и OpenClaw
-- `generated_dashboards/` — lightweight dashboards, создаваемые через чат
-- `workspace_template_guide.md` — как применить AI-first workspace template к этому проекту
+- `app/` — FastAPI backend
+- `streamlit_app/` — Streamlit dashboard
+- `migrations/` — Alembic migrations
+- `scripts/` — backup / restore / seed
+- `docs/` — roadmap и архитектурные заметки
+- `tests/` — тесты
+- `docker/` — Dockerfiles
+- `docker-compose.yml` — локальный и серверный контур v1
+- `.env.example` — шаблон окружения
 
-## URL-режимы
+## Этапы реализации
 
-- основной workspace dashboard: `https://app.moreforms.ru`
-- chat dashboard: `https://app.moreforms.ru?view=chat`
-- generated dashboard: `https://app.moreforms.ru?dashboard=<slug>`
+Подробный план: [docs/v1-development-plan.md](/Users/morenekitov/Documents/moreforms/docs/v1-development-plan.md)
 
-## Local run
+Коротко:
+
+1. Data model + API
+2. Auth + access
+3. Streamlit dashboard
+4. Agent-safe endpoints
+5. Ops + backup / restore
+
+## Локальный запуск backend
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/streamlit run app.py
+cp .env.example .env
+.venv/bin/uvicorn app.main:app --reload
 ```
 
-## AI-first Workspace Reference
+## Локальный запуск Streamlit v1
 
-В проект подключен reference-репозиторий:
+```bash
+.venv/bin/streamlit run streamlit_app/app.py
+```
 
-`references/ai-first-workspace-template`
+## Docker Compose
 
-Он нужен как источник паттернов для:
+```bash
+docker compose up --build
+```
 
-- organization memory;
-- structuring of discovery work;
-- context separation for AI;
-- operating workflows between strategy, research, product and delivery.
+## Legacy
+
+Старые файлы workspace пока сохранены для постепенной миграции:
+
+- [app.py](/Users/morenekitov/Documents/moreforms/app.py)
+- `data/*.csv`
+- `deploy/`
+- `generated_dashboards/`
+
+Они не являются целевой архитектурой v1.

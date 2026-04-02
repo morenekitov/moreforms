@@ -1,0 +1,24 @@
+import os
+
+os.environ.setdefault("AUTH_DISABLED", "true")
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test_health.db")
+os.environ.setdefault("AUTO_CREATE_SCHEMA", "true")
+
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+
+client = TestClient(app)
+
+
+def test_health() -> None:
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+
+def test_ready() -> None:
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ready"
