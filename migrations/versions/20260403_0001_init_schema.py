@@ -6,6 +6,7 @@ from collections.abc import Sequence
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 revision: str = "20260403_0001"
@@ -14,7 +15,7 @@ branch_labels: Sequence[str] | None = None
 depends_on: Sequence[str] | None = None
 
 
-assumption_type = sa.Enum(
+assumption_type = postgresql.ENUM(
     "problem",
     "solution",
     "pricing",
@@ -23,7 +24,7 @@ assumption_type = sa.Enum(
     name="assumptiontype",
     create_type=False,
 )
-hypothesis_status = sa.Enum(
+hypothesis_status = postgresql.ENUM(
     "new",
     "queued",
     "testing",
@@ -35,8 +36,10 @@ hypothesis_status = sa.Enum(
     name="hypothesisstatus",
     create_type=False,
 )
-interview_status = sa.Enum("planned", "completed", "canceled", "no_show", name="interviewstatus", create_type=False)
-insight_type = sa.Enum(
+interview_status = postgresql.ENUM(
+    "planned", "completed", "canceled", "no_show", name="interviewstatus", create_type=False
+)
+insight_type = postgresql.ENUM(
     "pain",
     "job",
     "workaround",
@@ -48,8 +51,8 @@ insight_type = sa.Enum(
     name="insighttype",
     create_type=False,
 )
-strength_level = sa.Enum("weak", "medium", "strong", name="strengthlevel", create_type=False)
-decision_value = sa.Enum(
+strength_level = postgresql.ENUM("weak", "medium", "strong", name="strengthlevel", create_type=False)
+decision_value = postgresql.ENUM(
     "go",
     "iterate",
     "pivot",
@@ -58,7 +61,7 @@ decision_value = sa.Enum(
     name="decisionvalue",
     create_type=False,
 )
-entity_type = sa.Enum(
+entity_type = postgresql.ENUM(
     "hypothesis",
     "interview",
     "page",
@@ -69,9 +72,13 @@ entity_type = sa.Enum(
     name="entitytype",
     create_type=False,
 )
-relation_type = sa.Enum("direct", "indirect", "alternative", "substitute", name="relationtype", create_type=False)
-source_type = sa.Enum("article", "interview", "report", "news", "internal", name="sourcetype", create_type=False)
-signal_type = sa.Enum(
+relation_type = postgresql.ENUM(
+    "direct", "indirect", "alternative", "substitute", name="relationtype", create_type=False
+)
+source_type = postgresql.ENUM(
+    "article", "interview", "report", "news", "internal", name="sourcetype", create_type=False
+)
+signal_type = postgresql.ENUM(
     "problem_signal",
     "solution_signal",
     "budget_signal",
