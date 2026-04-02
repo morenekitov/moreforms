@@ -7,3 +7,9 @@ def show_table(rows: list[dict], empty_message: str) -> None:
         st.info(empty_message)
         return
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+
+def to_frame(rows: list[dict]) -> pd.DataFrame:
+    if not rows:
+        return pd.DataFrame()
+    return pd.DataFrame(rows)

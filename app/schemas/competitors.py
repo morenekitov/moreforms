@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.schemas.common import TimestampedUpdatedModel
@@ -5,14 +9,14 @@ from app.schemas.common import TimestampedUpdatedModel
 
 class CompetitorBase(BaseModel):
     name: str
-    description: str | None = None
-    segment: str | None = None
-    product_type: str | None = None
-    pricing_model: str | None = None
-    website: str | None = None
-    strengths: str | None = None
-    weaknesses: str | None = None
-    notes: str | None = None
+    description: Optional[str] = None
+    segment: Optional[str] = None
+    product_type: Optional[str] = None
+    pricing_model: Optional[str] = None
+    website: Optional[str] = None
+    strengths: Optional[str] = None
+    weaknesses: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class CompetitorCreate(CompetitorBase):

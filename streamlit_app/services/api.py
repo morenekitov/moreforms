@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+from typing import Dict, Optional, Tuple, Union
 
 import requests
 
@@ -11,14 +14,14 @@ class ApiError(RuntimeError):
     pass
 
 
-def get_json(path: str, params: dict | None = None) -> list | dict:
+def get_json(path: str, params: Optional[dict] = None) -> Union[list, dict]:
     url = f"{API_BASE_URL}{path}"
     response = requests.get(url, params=params, timeout=TIMEOUT_SECONDS)
     response.raise_for_status()
     return response.json()
 
 
-def safe_get(path: str, params: dict | None = None) -> tuple[bool, list | dict | None, str | None]:
+def safe_get(path: str, params: Optional[dict] = None) -> Tuple[bool, Optional[Union[list, dict]], Optional[str]]:
     try:
         return True, get_json(path, params=params), None
     except requests.RequestException as exc:

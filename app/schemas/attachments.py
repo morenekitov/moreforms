@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.models.enums import EntityType
@@ -9,9 +13,9 @@ class AttachmentCreate(BaseModel):
     entity_id: str
     file_name: str
     storage_key: str
-    mime_type: str | None = None
-    size_bytes: int | None = None
-    uploaded_by: str | None = None
+    mime_type: Optional[str] = None
+    size_bytes: Optional[int] = None
+    uploaded_by: Optional[str] = None
 
 
 class AttachmentRead(TimestampedModel, AttachmentCreate):

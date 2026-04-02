@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fastapi import HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -37,8 +39,8 @@ def resolve_user_context(request: Request, db: Session) -> UserContext:
             AllowedUser.is_active.is_(True),
         )
     )
-    if not allowed_user and email not in settings.allowed_email_set:
+    if not allowed_user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Доступ запрещен для этого email")
 
-    role = allowed_user.role if allowed_user else "cofounder"
+    role = allowed_user.role
     return UserContext(email=email, role=role, is_authenticated=True)

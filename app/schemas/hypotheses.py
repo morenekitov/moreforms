@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.models.enums import AssumptionType, HypothesisStatus
@@ -6,14 +10,14 @@ from app.schemas.common import TimestampedUpdatedModel
 
 class HypothesisBase(BaseModel):
     title: str
-    description: str | None = None
-    segment: str | None = None
-    problem: str | None = None
+    description: Optional[str] = None
+    segment: Optional[str] = None
+    problem: Optional[str] = None
     assumption_type: AssumptionType
-    priority: int | None = None
+    priority: Optional[int] = None
     status: HypothesisStatus = HypothesisStatus.new
-    confidence: int | None = None
-    owner_user_id: str | None = None
+    confidence: Optional[int] = None
+    owner_user_id: Optional[str] = None
 
 
 class HypothesisCreate(HypothesisBase):
@@ -21,15 +25,15 @@ class HypothesisCreate(HypothesisBase):
 
 
 class HypothesisUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    segment: str | None = None
-    problem: str | None = None
-    assumption_type: AssumptionType | None = None
-    priority: int | None = None
-    status: HypothesisStatus | None = None
-    confidence: int | None = None
-    owner_user_id: str | None = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    segment: Optional[str] = None
+    problem: Optional[str] = None
+    assumption_type: Optional[AssumptionType] = None
+    priority: Optional[int] = None
+    status: Optional[HypothesisStatus] = None
+    confidence: Optional[int] = None
+    owner_user_id: Optional[str] = None
 
 
 class HypothesisRead(TimestampedUpdatedModel, HypothesisBase):

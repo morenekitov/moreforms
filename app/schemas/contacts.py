@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 from app.schemas.common import TimestampedUpdatedModel
@@ -5,13 +9,13 @@ from app.schemas.common import TimestampedUpdatedModel
 
 class ContactBase(BaseModel):
     full_name: str
-    email: EmailStr | None = None
-    role: str | None = None
-    company_id: str | None = None
-    segment: str | None = None
-    source: str | None = None
-    business_problem: str | None = None
-    notes: str | None = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    company_id: Optional[str] = None
+    segment: Optional[str] = None
+    source: Optional[str] = None
+    business_problem: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class ContactCreate(ContactBase):
@@ -19,14 +23,14 @@ class ContactCreate(ContactBase):
 
 
 class ContactUpdate(BaseModel):
-    full_name: str | None = None
-    email: EmailStr | None = None
-    role: str | None = None
-    company_id: str | None = None
-    segment: str | None = None
-    source: str | None = None
-    business_problem: str | None = None
-    notes: str | None = None
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    company_id: Optional[str] = None
+    segment: Optional[str] = None
+    source: Optional[str] = None
+    business_problem: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class ContactRead(TimestampedUpdatedModel, ContactBase):

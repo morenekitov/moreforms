@@ -27,6 +27,11 @@ def create_decision(
     return record
 
 
+@router.get("/decisions", response_model=list[DecisionRead])
+def list_decisions(db: Session = Depends(get_db), _: UserContext = Depends(get_current_user)) -> list[Decision]:
+    return list(db.scalars(select(Decision).order_by(Decision.created_at.desc())))
+
+
 @router.get("/hypotheses/{hypothesis_id}/decisions", response_model=list[DecisionRead])
 def list_hypothesis_decisions(
     hypothesis_id: str,

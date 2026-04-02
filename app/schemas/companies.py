@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.schemas.common import TimestampedUpdatedModel
@@ -5,11 +9,11 @@ from app.schemas.common import TimestampedUpdatedModel
 
 class CompanyBase(BaseModel):
     name: str
-    industry: str | None = None
-    size: str | None = None
-    segment: str | None = None
-    website: str | None = None
-    notes: str | None = None
+    industry: Optional[str] = None
+    size: Optional[str] = None
+    segment: Optional[str] = None
+    website: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class CompanyCreate(CompanyBase):
@@ -17,12 +21,12 @@ class CompanyCreate(CompanyBase):
 
 
 class CompanyUpdate(BaseModel):
-    name: str | None = None
-    industry: str | None = None
-    size: str | None = None
-    segment: str | None = None
-    website: str | None = None
-    notes: str | None = None
+    name: Optional[str] = None
+    industry: Optional[str] = None
+    size: Optional[str] = None
+    segment: Optional[str] = None
+    website: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class CompanyRead(TimestampedUpdatedModel, CompanyBase):

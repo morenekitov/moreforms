@@ -1,6 +1,6 @@
 import streamlit as st
 
-from streamlit_app.pages import decisions, hypotheses, insights, interviews, overview, wiki
+from streamlit_app.pages import competitors, contacts, decisions, hypotheses, insights, interviews, overview, signals, wiki
 from streamlit_app.services.api import API_BASE_URL, safe_get
 
 
@@ -19,18 +19,24 @@ def main() -> None:
         else:
             st.error(f"Backend недоступен: {error}")
 
-    tabs = st.tabs(["Обзор", "Гипотезы", "Интервью", "Инсайты", "Решения", "Wiki"])
+    tabs = st.tabs(["Обзор", "Гипотезы", "Контакты", "Интервью", "Инсайты", "Сигналы", "Конкуренты", "Решения", "Wiki"])
     with tabs[0]:
         overview.render()
     with tabs[1]:
         hypotheses.render()
     with tabs[2]:
-        interviews.render()
+        contacts.render()
     with tabs[3]:
-        insights.render()
+        interviews.render()
     with tabs[4]:
-        decisions.render()
+        insights.render()
     with tabs[5]:
+        signals.render()
+    with tabs[6]:
+        competitors.render()
+    with tabs[7]:
+        decisions.render()
+    with tabs[8]:
         wiki.render()
 
 

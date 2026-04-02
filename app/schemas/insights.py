@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.models.enums import InsightType, StrengthLevel
@@ -5,14 +9,14 @@ from app.schemas.common import TimestampedUpdatedModel
 
 
 class InsightBase(BaseModel):
-    hypothesis_id: str | None = None
-    interview_id: str | None = None
+    hypothesis_id: Optional[str] = None
+    interview_id: Optional[str] = None
     type: InsightType
-    quote: str | None = None
+    quote: Optional[str] = None
     summary: str
     strength: StrengthLevel = StrengthLevel.medium
-    tags: str | None = None
-    created_by: str | None = None
+    tags: Optional[str] = None
+    created_by: Optional[str] = None
 
 
 class InsightCreate(InsightBase):

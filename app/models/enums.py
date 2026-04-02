@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class AssumptionType(StrEnum):
+class AssumptionType(str, Enum):
     problem = "problem"
     solution = "solution"
     pricing = "pricing"
@@ -9,7 +9,7 @@ class AssumptionType(StrEnum):
     market = "market"
 
 
-class HypothesisStatus(StrEnum):
+class HypothesisStatus(str, Enum):
     new = "new"
     queued = "queued"
     testing = "testing"
@@ -20,14 +20,14 @@ class HypothesisStatus(StrEnum):
     archived = "archived"
 
 
-class InterviewStatus(StrEnum):
+class InterviewStatus(str, Enum):
     planned = "planned"
     completed = "completed"
     canceled = "canceled"
     no_show = "no_show"
 
 
-class InsightType(StrEnum):
+class InsightType(str, Enum):
     pain = "pain"
     job = "job"
     workaround = "workaround"
@@ -38,13 +38,13 @@ class InsightType(StrEnum):
     other = "other"
 
 
-class StrengthLevel(StrEnum):
+class StrengthLevel(str, Enum):
     weak = "weak"
     medium = "medium"
     strong = "strong"
 
 
-class DecisionValue(StrEnum):
+class DecisionValue(str, Enum):
     go = "go"
     iterate = "iterate"
     pivot = "pivot"
@@ -52,7 +52,7 @@ class DecisionValue(StrEnum):
     need_more_evidence = "need_more_evidence"
 
 
-class EntityType(StrEnum):
+class EntityType(str, Enum):
     hypothesis = "hypothesis"
     interview = "interview"
     page = "page"
@@ -62,14 +62,14 @@ class EntityType(StrEnum):
     signal = "signal"
 
 
-class RelationType(StrEnum):
+class RelationType(str, Enum):
     direct = "direct"
     indirect = "indirect"
     alternative = "alternative"
     substitute = "substitute"
 
 
-class SourceType(StrEnum):
+class SourceType(str, Enum):
     article = "article"
     interview = "interview"
     report = "report"
@@ -77,7 +77,7 @@ class SourceType(StrEnum):
     internal = "internal"
 
 
-class SignalType(StrEnum):
+class SignalType(str, Enum):
     problem_signal = "problem_signal"
     solution_signal = "solution_signal"
     budget_signal = "budget_signal"

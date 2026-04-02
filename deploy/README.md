@@ -1,30 +1,16 @@
-# Серверный деплой moreforms
+# Серверный деплой moreforms v1
 
-Этот каталог хранит deploy-артефакты для server-side контура AI-first discovery workspace:
+Текущий production contour:
 
-- `docker-compose.yml` — контейнеры `streamlit`, `oauth2-proxy`, `caddy`
-- `streamlit.Dockerfile` — образ для текущего дашборда
-- `Caddyfile` — reverse proxy и автоматический HTTPS
-- `.env.example` — шаблон переменных окружения без секретов
-- `openclaw_responses_adapter.py` — внутренний HTTP-adapter для вызова `openclaw agent`
-- `scripts/server-sync.sh` — pull-and-restart сценарий для сервера
+`Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> API -> PostgreSQL`
 
-## Целевой контур
+## Контейнеры
 
-`Интернет -> Caddy -> oauth2-proxy (Google) -> Streamlit -> OpenClaw HTTP adapter -> OpenClaw agent`
-
-## Пользовательские URL
-
-- основной workspace dashboard: `https://app.moreforms.ru`
-- чат-дашборд: `https://app.moreforms.ru?view=chat`
-- generated dashboard: `https://app.moreforms.ru?dashboard=<slug>`
-
-Ключевые принципы:
-
-- публично открыт только `Caddy`
-- `Streamlit` живет в docker-сети, а OpenClaw вызывается через внутренний host-level adapter
-- доступ в приложение идет только после Google login через `oauth2-proxy`
-- реальные секреты не хранятся в git
+- `postgres` — основная БД
+- `api` — FastAPI backend
+- `streamlit` — read dashboard
+- `oauth2-proxy` — Google OAuth + allowlist
+- `caddy` — reverse proxy + HTTPS
 
 ## Что нужно заполнить на сервере
 
@@ -37,17 +23,17 @@ cp deploy/.env.example /srv/moreforms/runtime/.env
 2. Заполнить в `/srv/moreforms/runtime/.env`:
 
 - `APP_DOMAIN`
-- `MAIN_DASHBOARD_PUBLIC_URL`
-- `CHAT_DASHBOARD_PUBLIC_URL`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
+- `BOOTSTRAP_OWNER_EMAIL`
 - `OAUTH2_PROXY_CLIENT_ID`
 - `OAUTH2_PROXY_CLIENT_SECRET`
 - `OAUTH2_PROXY_COOKIE_SECRET`
 - `OAUTH2_PROXY_ALLOWED_EMAILS_FILE`
-- `OPENCLAW_RESPONSES_URL`
-- `OPENCLAW_AGENT_ID`
-- `OPENCLAW_CHAT_USER_PREFIX`
 
-3. Создать файл allowlist для Google-логина, по одному email на строку:
+3. Создать allowlist-файл для Google login:
 
 ```bash
 mkdir -p /srv/moreforms/runtime/secrets
@@ -58,50 +44,32 @@ EOF
 chmod 600 /srv/moreforms/runtime/secrets/oauth2-allowed-emails.txt
 ```
 
-4. Запустить базовый контур:
+4. Запустить контур:
 
 ```bash
 cd /srv/moreforms/deploy/repo/deploy
 docker compose --env-file /srv/moreforms/runtime/.env up -d --build
 ```
 
-5. Поднять внутренний OpenClaw adapter на хосте как systemd unit и направить `Streamlit` в:
-
-```bash
-http://host.docker.internal:18889/v1/responses
-```
-
 ## Google OAuth
 
-Для `oauth2-proxy` нужен redirect URI:
+Redirect URI для `oauth2-proxy`:
 
 ```text
 https://app.moreforms.ru/oauth2/callback
 ```
 
-## OpenClaw
+## База данных
 
-Текущий шаблон рассчитывает на host-level adapter endpoint:
+`api` контейнер на старте:
 
-```text
-http://host.docker.internal:18889/v1/responses
-```
+1. ждет PostgreSQL;
+2. выполняет `alembic upgrade head`;
+3. запускает `uvicorn`.
 
-Adapter вызывает `openclaw agent --json` от пользователя `openclaw` и возвращает результат в формате, который уже понимает чат в Streamlit.
-На VPS это надежнее, чем напрямую интегрироваться с `OpenClaw Gateway /v1/responses`, где есть device/operator auth-слой.
+Allowed users bootstrap:
 
-## Git sync
+- emails из `ALLOWED_EMAILS`
+- owner из `BOOTSTRAP_OWNER_EMAIL`
 
-`scripts/server-sync.sh` рассчитан на серверный clone в:
-
-```text
-/srv/moreforms/deploy/repo
-```
-
-Сценарий:
-
-- делает `git fetch`
-- fast-forward на `origin/main`
-- перезапускает контейнеры через `docker compose up -d --build`
-
-Его удобно вызывать из webhook handler или по cron.
+записываются в `allowed_users` при старте приложения.

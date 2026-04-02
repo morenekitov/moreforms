@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.models.enums import EntityType
@@ -7,10 +11,10 @@ from app.schemas.common import TimestampedUpdatedModel
 class PageBase(BaseModel):
     title: str
     content_md: str
-    entity_type: EntityType | None = None
-    entity_id: str | None = None
-    tags: str | None = None
-    created_by: str | None = None
+    entity_type: Optional[EntityType] = None
+    entity_id: Optional[str] = None
+    tags: Optional[str] = None
+    created_by: Optional[str] = None
 
 
 class PageCreate(PageBase):
@@ -18,11 +22,11 @@ class PageCreate(PageBase):
 
 
 class PageUpdate(BaseModel):
-    title: str | None = None
-    content_md: str | None = None
-    entity_type: EntityType | None = None
-    entity_id: str | None = None
-    tags: str | None = None
+    title: Optional[str] = None
+    content_md: Optional[str] = None
+    entity_type: Optional[EntityType] = None
+    entity_id: Optional[str] = None
+    tags: Optional[str] = None
 
 
 class PageRead(TimestampedUpdatedModel, PageBase):

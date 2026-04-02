@@ -2,13 +2,18 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: moreforms
-      POSTGRES_USER: moreforms
-      POSTGRES_PASSWORD: moreforms
+      POSTGRES_DB: ${POSTGRES_DB:-moreforms}
+      POSTGRES_USER: ${POSTGRES_USER:-moreforms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-moreforms}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-moreforms} -d ${POSTGRES_DB:-moreforms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   api:
     build:
@@ -17,9 +22,15 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
   streamlit:
     build:
@@ -28,9 +39,15 @@ services:
     env_file:
       - .env
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "8501:8501"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
 volumes:
   postgres_data:

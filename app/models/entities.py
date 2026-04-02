@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -38,14 +41,14 @@ class Hypothesis(Base, TimestampMixin):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text())
-    segment: Mapped[str | None] = mapped_column(String(255))
-    problem: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[Optional[str]] = mapped_column(Text())
+    segment: Mapped[Optional[str]] = mapped_column(String(255))
+    problem: Mapped[Optional[str]] = mapped_column(Text())
     assumption_type: Mapped[AssumptionType] = mapped_column(Enum(AssumptionType), nullable=False)
-    priority: Mapped[int | None] = mapped_column(Integer())
+    priority: Mapped[Optional[int]] = mapped_column(Integer())
     status: Mapped[HypothesisStatus] = mapped_column(Enum(HypothesisStatus), default=HypothesisStatus.new, nullable=False)
-    confidence: Mapped[int | None] = mapped_column(Integer())
-    owner_user_id: Mapped[str | None] = mapped_column(String(36))
+    confidence: Mapped[Optional[int]] = mapped_column(Integer())
+    owner_user_id: Mapped[Optional[str]] = mapped_column(String(36))
 
     interviews = relationship("Interview", back_populates="hypothesis")
     insights = relationship("Insight", back_populates="hypothesis")
@@ -57,11 +60,11 @@ class Company(Base, TimestampMixin):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    industry: Mapped[str | None] = mapped_column(String(255))
-    size: Mapped[str | None] = mapped_column(String(255))
-    segment: Mapped[str | None] = mapped_column(String(255))
-    website: Mapped[str | None] = mapped_column(String(500))
-    notes: Mapped[str | None] = mapped_column(Text())
+    industry: Mapped[Optional[str]] = mapped_column(String(255))
+    size: Mapped[Optional[str]] = mapped_column(String(255))
+    segment: Mapped[Optional[str]] = mapped_column(String(255))
+    website: Mapped[Optional[str]] = mapped_column(String(500))
+    notes: Mapped[Optional[str]] = mapped_column(Text())
 
     contacts = relationship("Contact", back_populates="company")
     interviews = relationship("Interview", back_populates="company")
@@ -73,13 +76,13 @@ class Contact(Base, TimestampMixin):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    email: Mapped[str | None] = mapped_column(String(255), index=True)
-    role: Mapped[str | None] = mapped_column(String(255), index=True)
-    company_id: Mapped[str | None] = mapped_column(ForeignKey("companies.id"))
-    segment: Mapped[str | None] = mapped_column(String(255), index=True)
-    source: Mapped[str | None] = mapped_column(String(255))
-    business_problem: Mapped[str | None] = mapped_column(Text())
-    notes: Mapped[str | None] = mapped_column(Text())
+    email: Mapped[Optional[str]] = mapped_column(String(255), index=True)
+    role: Mapped[Optional[str]] = mapped_column(String(255), index=True)
+    company_id: Mapped[Optional[str]] = mapped_column(ForeignKey("companies.id"))
+    segment: Mapped[Optional[str]] = mapped_column(String(255), index=True)
+    source: Mapped[Optional[str]] = mapped_column(String(255))
+    business_problem: Mapped[Optional[str]] = mapped_column(Text())
+    notes: Mapped[Optional[str]] = mapped_column(Text())
 
     company = relationship("Company", back_populates="contacts")
     interviews = relationship("Interview", back_populates="contact")
@@ -89,17 +92,17 @@ class Interview(Base, TimestampMixin):
     __tablename__ = "interviews"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
-    contact_id: Mapped[str | None] = mapped_column(ForeignKey("contacts.id"))
-    company_id: Mapped[str | None] = mapped_column(ForeignKey("companies.id"))
-    hypothesis_id: Mapped[str | None] = mapped_column(ForeignKey("hypotheses.id"))
-    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    conducted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    contact_id: Mapped[Optional[str]] = mapped_column(ForeignKey("contacts.id"))
+    company_id: Mapped[Optional[str]] = mapped_column(ForeignKey("companies.id"))
+    hypothesis_id: Mapped[Optional[str]] = mapped_column(ForeignKey("hypotheses.id"))
+    scheduled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    conducted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     status: Mapped[InterviewStatus] = mapped_column(Enum(InterviewStatus), default=InterviewStatus.planned, nullable=False)
-    raw_notes: Mapped[str | None] = mapped_column(Text())
-    summary: Mapped[str | None] = mapped_column(Text())
-    transcript_url: Mapped[str | None] = mapped_column(String(500))
-    recording_url: Mapped[str | None] = mapped_column(String(500))
-    created_by: Mapped[str | None] = mapped_column(String(255))
+    raw_notes: Mapped[Optional[str]] = mapped_column(Text())
+    summary: Mapped[Optional[str]] = mapped_column(Text())
+    transcript_url: Mapped[Optional[str]] = mapped_column(String(500))
+    recording_url: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[str]] = mapped_column(String(255))
 
     contact = relationship("Contact", back_populates="interviews")
     company = relationship("Company", back_populates="interviews")
@@ -111,14 +114,14 @@ class Insight(Base, TimestampMixin):
     __tablename__ = "insights"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
-    hypothesis_id: Mapped[str | None] = mapped_column(ForeignKey("hypotheses.id"))
-    interview_id: Mapped[str | None] = mapped_column(ForeignKey("interviews.id"))
+    hypothesis_id: Mapped[Optional[str]] = mapped_column(ForeignKey("hypotheses.id"))
+    interview_id: Mapped[Optional[str]] = mapped_column(ForeignKey("interviews.id"))
     type: Mapped[InsightType] = mapped_column(Enum(InsightType), nullable=False)
-    quote: Mapped[str | None] = mapped_column(Text())
+    quote: Mapped[Optional[str]] = mapped_column(Text())
     summary: Mapped[str] = mapped_column(Text(), nullable=False)
     strength: Mapped[StrengthLevel] = mapped_column(Enum(StrengthLevel), default=StrengthLevel.medium, nullable=False)
-    tags: Mapped[str | None] = mapped_column(Text())
-    created_by: Mapped[str | None] = mapped_column(String(255))
+    tags: Mapped[Optional[str]] = mapped_column(Text())
+    created_by: Mapped[Optional[str]] = mapped_column(String(255))
 
     hypothesis = relationship("Hypothesis", back_populates="insights")
     interview = relationship("Interview", back_populates="insights")
@@ -132,7 +135,7 @@ class Decision(Base):
     decision: Mapped[DecisionValue] = mapped_column(Enum(DecisionValue), nullable=False)
     reason: Mapped[str] = mapped_column(Text(), nullable=False)
     evidence_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    created_by: Mapped[str | None] = mapped_column(String(255))
+    created_by: Mapped[Optional[str]] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     hypothesis = relationship("Hypothesis", back_populates="decisions")
@@ -144,10 +147,10 @@ class Page(Base, TimestampMixin):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     title: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     content_md: Mapped[str] = mapped_column(Text(), nullable=False)
-    entity_type: Mapped[EntityType | None] = mapped_column(Enum(EntityType))
-    entity_id: Mapped[str | None] = mapped_column(String(36), index=True)
-    tags: Mapped[str | None] = mapped_column(Text())
-    created_by: Mapped[str | None] = mapped_column(String(255))
+    entity_type: Mapped[Optional[EntityType]] = mapped_column(Enum(EntityType))
+    entity_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    tags: Mapped[Optional[str]] = mapped_column(Text())
+    created_by: Mapped[Optional[str]] = mapped_column(String(255))
 
 
 class Attachment(Base):
@@ -158,9 +161,9 @@ class Attachment(Base):
     entity_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     storage_key: Mapped[str] = mapped_column(String(500), nullable=False)
-    mime_type: Mapped[str | None] = mapped_column(String(255))
-    size_bytes: Mapped[int | None] = mapped_column(Integer())
-    uploaded_by: Mapped[str | None] = mapped_column(String(255))
+    mime_type: Mapped[Optional[str]] = mapped_column(String(255))
+    size_bytes: Mapped[Optional[int]] = mapped_column(Integer())
+    uploaded_by: Mapped[Optional[str]] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
@@ -169,14 +172,14 @@ class Competitor(Base, TimestampMixin):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    description: Mapped[str | None] = mapped_column(Text())
-    segment: Mapped[str | None] = mapped_column(String(255), index=True)
-    product_type: Mapped[str | None] = mapped_column(String(255))
-    pricing_model: Mapped[str | None] = mapped_column(String(255))
-    website: Mapped[str | None] = mapped_column(String(500))
-    strengths: Mapped[str | None] = mapped_column(Text())
-    weaknesses: Mapped[str | None] = mapped_column(Text())
-    notes: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[Optional[str]] = mapped_column(Text())
+    segment: Mapped[Optional[str]] = mapped_column(String(255), index=True)
+    product_type: Mapped[Optional[str]] = mapped_column(String(255))
+    pricing_model: Mapped[Optional[str]] = mapped_column(String(255))
+    website: Mapped[Optional[str]] = mapped_column(String(500))
+    strengths: Mapped[Optional[str]] = mapped_column(Text())
+    weaknesses: Mapped[Optional[str]] = mapped_column(Text())
+    notes: Mapped[Optional[str]] = mapped_column(Text())
 
     signals = relationship("Signal", back_populates="competitor")
 
@@ -186,15 +189,15 @@ class Signal(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[Optional[str]] = mapped_column(Text())
     source_type: Mapped[SourceType] = mapped_column(Enum(SourceType), nullable=False)
-    source_url: Mapped[str | None] = mapped_column(String(500))
-    company_id: Mapped[str | None] = mapped_column(ForeignKey("companies.id"))
-    competitor_id: Mapped[str | None] = mapped_column(ForeignKey("competitors.id"))
-    segment: Mapped[str | None] = mapped_column(String(255), index=True)
+    source_url: Mapped[Optional[str]] = mapped_column(String(500))
+    company_id: Mapped[Optional[str]] = mapped_column(ForeignKey("companies.id"))
+    competitor_id: Mapped[Optional[str]] = mapped_column(ForeignKey("competitors.id"))
+    segment: Mapped[Optional[str]] = mapped_column(String(255), index=True)
     signal_type: Mapped[SignalType] = mapped_column(Enum(SignalType), nullable=False)
     strength: Mapped[StrengthLevel] = mapped_column(Enum(StrengthLevel), default=StrengthLevel.medium, nullable=False)
-    notes: Mapped[str | None] = mapped_column(Text())
+    notes: Mapped[Optional[str]] = mapped_column(Text())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     company = relationship("Company", back_populates="signals")
@@ -214,7 +217,7 @@ class HypothesisSignal(Base):
 
     hypothesis_id: Mapped[str] = mapped_column(ForeignKey("hypotheses.id"), primary_key=True)
     signal_id: Mapped[str] = mapped_column(ForeignKey("signals.id"), primary_key=True)
-    relevance_score: Mapped[float | None] = mapped_column(Numeric(4, 2))
+    relevance_score: Mapped[Optional[float]] = mapped_column(Numeric(4, 2))
 
 
 class AllowedUser(Base):
@@ -231,10 +234,10 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
-    actor_email: Mapped[str | None] = mapped_column(String(255), index=True)
-    actor_role: Mapped[str | None] = mapped_column(String(50))
+    actor_email: Mapped[Optional[str]] = mapped_column(String(255), index=True)
+    actor_role: Mapped[Optional[str]] = mapped_column(String(50))
     action: Mapped[str] = mapped_column(String(255), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    entity_id: Mapped[str | None] = mapped_column(String(36), index=True)
-    metadata_json: Mapped[str | None] = mapped_column(Text())
+    entity_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    metadata_json: Mapped[Optional[str]] = mapped_column(Text())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

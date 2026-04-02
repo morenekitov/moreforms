@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import json
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -9,10 +12,10 @@ def write_audit_log(
     db: Session,
     action: str,
     entity_type: str,
-    entity_id: str | None,
-    actor_email: str | None,
-    actor_role: str | None,
-    metadata: dict | None = None,
+    entity_id: Optional[str],
+    actor_email: Optional[str],
+    actor_role: Optional[str],
+    metadata: Optional[dict] = None,
 ) -> None:
     entry = AuditLog(
         action=action,

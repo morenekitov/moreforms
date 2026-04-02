@@ -1,9 +1,3 @@
-import os
-
-os.environ.setdefault("AUTH_DISABLED", "true")
-os.environ.setdefault("DATABASE_URL", "sqlite:///./test_health.db")
-os.environ.setdefault("AUTO_CREATE_SCHEMA", "true")
-
 from fastapi.testclient import TestClient
 
 from app.main import app

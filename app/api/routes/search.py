@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Dict, List, Optional
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -16,7 +20,7 @@ def search(
     q: str = Query(min_length=2),
     db: Session = Depends(get_db),
     _: UserContext = Depends(get_current_user),
-) -> dict[str, list[dict[str, str | None]]]:
+) -> Dict[str, List[Dict[str, Optional[str]]]]:
     pattern = f"%{q}%"
     hypotheses = list(
         db.scalars(

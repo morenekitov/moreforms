@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import lru_cache
 
 from pydantic import Field
@@ -16,6 +18,7 @@ class Settings(BaseSettings):
 
     auth_disabled: bool = Field(default=True, alias="AUTH_DISABLED")
     allowed_emails: str = Field(default="", alias="ALLOWED_EMAILS")
+    bootstrap_owner_email: str = Field(default="", alias="BOOTSTRAP_OWNER_EMAIL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
