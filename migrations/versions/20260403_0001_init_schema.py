@@ -14,7 +14,15 @@ branch_labels: Sequence[str] | None = None
 depends_on: Sequence[str] | None = None
 
 
-assumption_type = sa.Enum("problem", "solution", "pricing", "channel", "market", name="assumptiontype")
+assumption_type = sa.Enum(
+    "problem",
+    "solution",
+    "pricing",
+    "channel",
+    "market",
+    name="assumptiontype",
+    create_type=False,
+)
 hypothesis_status = sa.Enum(
     "new",
     "queued",
@@ -25,8 +33,9 @@ hypothesis_status = sa.Enum(
     "parked",
     "archived",
     name="hypothesisstatus",
+    create_type=False,
 )
-interview_status = sa.Enum("planned", "completed", "canceled", "no_show", name="interviewstatus")
+interview_status = sa.Enum("planned", "completed", "canceled", "no_show", name="interviewstatus", create_type=False)
 insight_type = sa.Enum(
     "pain",
     "job",
@@ -37,9 +46,18 @@ insight_type = sa.Enum(
     "competitor",
     "other",
     name="insighttype",
+    create_type=False,
 )
-strength_level = sa.Enum("weak", "medium", "strong", name="strengthlevel")
-decision_value = sa.Enum("go", "iterate", "pivot", "drop", "need_more_evidence", name="decisionvalue")
+strength_level = sa.Enum("weak", "medium", "strong", name="strengthlevel", create_type=False)
+decision_value = sa.Enum(
+    "go",
+    "iterate",
+    "pivot",
+    "drop",
+    "need_more_evidence",
+    name="decisionvalue",
+    create_type=False,
+)
 entity_type = sa.Enum(
     "hypothesis",
     "interview",
@@ -49,9 +67,10 @@ entity_type = sa.Enum(
     "competitor",
     "signal",
     name="entitytype",
+    create_type=False,
 )
-relation_type = sa.Enum("direct", "indirect", "alternative", "substitute", name="relationtype")
-source_type = sa.Enum("article", "interview", "report", "news", "internal", name="sourcetype")
+relation_type = sa.Enum("direct", "indirect", "alternative", "substitute", name="relationtype", create_type=False)
+source_type = sa.Enum("article", "interview", "report", "news", "internal", name="sourcetype", create_type=False)
 signal_type = sa.Enum(
     "problem_signal",
     "solution_signal",
@@ -59,6 +78,7 @@ signal_type = sa.Enum(
     "urgency_signal",
     "adoption_signal",
     name="signaltype",
+    create_type=False,
 )
 
 
