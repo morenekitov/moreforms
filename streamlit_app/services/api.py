@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import requests
+import streamlit as st
 
 
 API_BASE_URL = os.getenv("STREAMLIT_API_BASE_URL", "http://localhost:8000").rstrip("/")
@@ -14,9 +15,24 @@ class ApiError(RuntimeError):
     pass
 
 
+def build_auth_headers() -> dict:
+    headers = {}
+    try:
+        request_headers = st.context.headers
+    except Exception:
+        request_headers = {}
+
+    for key in ("x-auth-request-email", "x-forwarded-email", "x-user-email", "x-email"):
+        value = request_headers.get(key)
+        if value:
+            headers[key] = value
+
+    return headers
+
+
 def get_json(path: str, params: Optional[dict] = None) -> Union[list, dict]:
     url = f"{API_BASE_URL}{path}"
-    response = requests.get(url, params=params, timeout=TIMEOUT_SECONDS)
+    response = requests.get(url, params=params, headers=build_auth_headers(), timeout=TIMEOUT_SECONDS)
     response.raise_for_status()
     return response.json()
 
